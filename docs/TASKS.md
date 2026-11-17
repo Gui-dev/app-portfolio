@@ -11,7 +11,7 @@ Regra de execução: uma task por vez, todos os passos do plano na ordem (teste 
 
 | #   | Task                  | Implementada | Entrega                                                                              | Gate                                                                          | Status |
 | --- | --------------------- | ------------ | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | ------ |
-| 1   | Bootstrap & tooling   | Sim          | Next 15 + pnpm + Biome + Lefthook + Podman + Vitest + CI base                        | `pnpm lint && pnpm typecheck && pnpm test && pnpm build`                      | [ ]    |
+| 1   | Bootstrap & tooling   | Sim          | Next 15 + pnpm + Biome + Lefthook + Podman + Vitest + CI base                        | `pnpm lint && pnpm typecheck && pnpm test && pnpm build`                      | [x]    |
 | 2   | Tokens, UI e landing  | Não          | Tokens do Figma, primitivas, landing; **checkpoint visual**                          | `pnpm lint && pnpm typecheck && pnpm test`                                    | [ ]    |
 | 3   | Schema & migrations   | Não          | Tabelas de perfil + Drizzle + migration 0000                                         | `pnpm db:generate && pnpm db:migrate` + `\d profiles`                         | [ ]    |
 | 4   | Auth                  | Não          | Better Auth, Mailpit, verificação, reset, GitHub opcional, e2e auth                  | `pnpm test && pnpm test:e2e tests/e2e/auth.spec.ts`                           | [ ]    |
