@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { parseEnv } from "./env";
+import { parseEnv } from "./env-schema";
 
 const validEnv = {
 	DATABASE_URL: "postgresql://foliocraft:foliocraft@localhost:5432/foliocraft",

@@ -1,54 +1,14 @@
-import { z } from "zod";
+import { type Env, parseEnv } from "./env-schema";
 
 /**
  * Validated environment variables for the application.
  *
- * `env` below is parsed lazily (on first property access) so that importing
- * this module never fails by itself — e.g. in unit tests or CI jobs that do
- * not provide real secrets. Server code that touches `env` always runs with
- * the real environment present.
+ * Parsed eagerly at module scope (boot validation per spec): the process
+ * fails fast on a missing/malformed variable instead of breaking later at
+ * first use.
  *
  * Server-only by discipline: never import this module from a client
- * component.
+ * component. Tests should import `envSchema`/`parseEnv` from
+ * `./env-schema` instead, so they never depend on a real environment.
  */
-export const envSchema = z.object({
-	DATABASE_URL: z.url(),
-	DATABASE_TEST_URL: z.url(),
-	BETTER_AUTH_SECRET: z.string().min(32),
-	BETTER_AUTH_URL: z.url(),
-	GITHUB_CLIENT_ID: z.string().min(1).optional(),
-	GITHUB_CLIENT_SECRET: z.string().min(1).optional(),
-	SMTP_HOST: z.string().min(1),
-	SMTP_PORT: z.coerce.number().int().positive().default(1025),
-	SMTP_FROM: z.string().min(1),
-	NEXT_PUBLIC_APP_URL: z.url(),
-});
-
-export type Env = z.infer<typeof envSchema>;
-
-export function parseEnv(source: Record<string, string | undefined> = process.env): Env {
-	return envSchema.parse(source);
-}
-
-export const env: Env = new Proxy({} as Env, {
-	get(_target, key) {
-		return parseEnv()[key as keyof Env];
-	},
-	has(_target, key) {
-		return key in parseEnv();
-	},
-	ownKeys() {
-		return Reflect.ownKeys(parseEnv());
-	},
-	getOwnPropertyDescriptor(_target, key) {
-		const parsed = parseEnv();
-		if (key in parsed) {
-			return {
-				configurable: true,
-				enumerable: true,
-				value: parsed[key as keyof Env],
-			};
-		}
-		return undefined;
-	},
-});
+export const env: Env = parseEnv(process.env);
