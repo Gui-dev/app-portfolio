@@ -4,25 +4,28 @@ Board de acompanhamento. **Plano detalhado:** [`plans/2026-11-17-foliocraft-impl
 
 Regra de execução: uma task por vez, todos os passos do plano na ordem (teste falhando → implementar → verde), gate completo, commit Conventional, marcar aqui.
 
+- **Implementada:** o código da task já está commitado na branch (`Sim`/`Não`).
+- **Status:** a task está encerrada — gate verde e review aprovado (`[x]`).
+
 ## Progresso
 
-| #   | Task                  | Entrega                                                                              | Gate                                                                          | Status |
-| --- | --------------------- | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | ------ |
-| 1   | Bootstrap & tooling   | Next 15 + pnpm + Biome + Lefthook + Podman + Vitest + CI base                        | `pnpm lint && pnpm typecheck && pnpm test && pnpm build`                      | [ ]    |
-| 2   | Tokens, UI e landing  | Tokens do Figma, primitivas, landing; **checkpoint visual**                          | `pnpm lint && pnpm typecheck && pnpm test`                                    | [ ]    |
-| 3   | Schema & migrations   | Tabelas de perfil + Drizzle + migration 0000                                         | `pnpm db:generate && pnpm db:migrate` + `\d profiles`                         | [ ]    |
-| 4   | Auth                  | Better Auth, Mailpit, verificação, reset, GitHub opcional, e2e auth                  | `pnpm test && pnpm test:e2e tests/e2e/auth.spec.ts`                           | [ ]    |
-| 5   | Domínio               | Slug, contratos Zod, queries, helpers de banco de teste                              | `pnpm test`                                                                   | [ ]    |
-| 6   | Templates & portfólio | 3 templates × light/dark, monograma, `PortfolioPage`; grounding no Figma             | `pnpm test`                                                                   | [ ]    |
-| 7   | Editor base           | Shell, aba Perfil, autosave, publish/unpublish, e2e autosave                         | `pnpm test && pnpm test:e2e tests/e2e/editor.spec.ts`                         | [ ]    |
-| 8   | Seções                | Experiência (com kind + helper primeiro emprego), Projetos, Skills, e2e persistência | `pnpm test && pnpm test:e2e tests/e2e/editor.spec.ts`                         | [ ]    |
-| 9   | Aparência & preview   | Aba Aparência, preview ao vivo, responsivo, e2e tema                                 | `pnpm test && pnpm test:e2e tests/e2e/editor.spec.ts`                         | [ ]    |
-| 10  | Página pública        | `/[slug]` SSG/ISR, 301 de slug, 404, revalidação, e2e                                | `pnpm test:e2e tests/e2e/public-page.spec.ts tests/e2e/slug-redirect.spec.ts` | [ ]    |
-| 11  | SEO & explore         | Metadata, JSON-LD, OG, sitemap, robots, `/explore`                                   | `pnpm test:e2e tests/e2e/seo.spec.ts tests/e2e/explore.spec.ts`               | [ ]    |
-| 12  | PDF                   | Print route + Playwright + endpoint + botões; e2e download                           | `pnpm test:e2e tests/e2e/pdf.spec.ts`                                         | [ ]    |
-| 13  | Configurações         | Senha, GitHub conectado, exclusão de conta; e2e                                      | `pnpm test:e2e tests/e2e/settings.spec.ts`                                    | [ ]    |
-| 14  | Seed, README, CI e2e  | Bruce Wayne + rascunho Clark, README inglês, job e2e                                 | `pnpm test:e2e`                                                               | [ ]    |
-| 15  | A11y & QA             | axe, teclado, varredura do Review Focus, gate final                                  | `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e`     | [ ]    |
+| #   | Task                  | Implementada | Entrega                                                                              | Gate                                                                          | Status |
+| --- | --------------------- | ------------ | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------- | ------ |
+| 1   | Bootstrap & tooling   | Sim          | Next 15 + pnpm + Biome + Lefthook + Podman + Vitest + CI base                        | `pnpm lint && pnpm typecheck && pnpm test && pnpm build`                      | [ ]    |
+| 2   | Tokens, UI e landing  | Não          | Tokens do Figma, primitivas, landing; **checkpoint visual**                          | `pnpm lint && pnpm typecheck && pnpm test`                                    | [ ]    |
+| 3   | Schema & migrations   | Não          | Tabelas de perfil + Drizzle + migration 0000                                         | `pnpm db:generate && pnpm db:migrate` + `\d profiles`                         | [ ]    |
+| 4   | Auth                  | Não          | Better Auth, Mailpit, verificação, reset, GitHub opcional, e2e auth                  | `pnpm test && pnpm test:e2e tests/e2e/auth.spec.ts`                           | [ ]    |
+| 5   | Domínio               | Não          | Slug, contratos Zod, queries, helpers de banco de teste                              | `pnpm test`                                                                   | [ ]    |
+| 6   | Templates & portfólio | Não          | 3 templates × light/dark, monograma, `PortfolioPage`; grounding no Figma             | `pnpm test`                                                                   | [ ]    |
+| 7   | Editor base           | Não          | Shell, aba Perfil, autosave, publish/unpublish, e2e autosave                         | `pnpm test && pnpm test:e2e tests/e2e/editor.spec.ts`                         | [ ]    |
+| 8   | Seções                | Não          | Experiência (com kind + helper primeiro emprego), Projetos, Skills, e2e persistência | `pnpm test && pnpm test:e2e tests/e2e/editor.spec.ts`                         | [ ]    |
+| 9   | Aparência & preview   | Não          | Aba Aparência, preview ao vivo, responsivo, e2e tema                                 | `pnpm test && pnpm test:e2e tests/e2e/editor.spec.ts`                         | [ ]    |
+| 10  | Página pública        | Não          | `/[slug]` SSG/ISR, 301 de slug, 404, revalidação, e2e                                | `pnpm test:e2e tests/e2e/public-page.spec.ts tests/e2e/slug-redirect.spec.ts` | [ ]    |
+| 11  | SEO & explore         | Não          | Metadata, JSON-LD, OG, sitemap, robots, `/explore`                                   | `pnpm test:e2e tests/e2e/seo.spec.ts tests/e2e/explore.spec.ts`               | [ ]    |
+| 12  | PDF                   | Não          | Print route + Playwright + endpoint + botões; e2e download                           | `pnpm test:e2e tests/e2e/pdf.spec.ts`                                         | [ ]    |
+| 13  | Configurações         | Não          | Senha, GitHub conectado, exclusão de conta; e2e                                      | `pnpm test:e2e tests/e2e/settings.spec.ts`                                    | [ ]    |
+| 14  | Seed, README, CI e2e  | Não          | Bruce Wayne + rascunho Clark, README inglês, job e2e                                 | `pnpm test:e2e`                                                               | [ ]    |
+| 15  | A11y & QA             | Não          | axe, teclado, varredura do Review Focus, gate final                                  | `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e`     | [ ]    |
 
 ## Gates
 
