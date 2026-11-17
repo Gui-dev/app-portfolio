@@ -1,0 +1,7 @@
+[tools]
+node = "24"
+pnpm = "10"
+
+# Fallback (documented): if the Node 24 download fails, pin the locally
+# available version that ships a pnpm shim instead:
+# node = "25.2.1"

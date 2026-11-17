@@ -1,97 +1,83 @@
-# Testing — TICKETVIBE
+# Testing — FolioCraft
 
-How testing works in this repository. Project-specific deviations from the generic skills:
+How testing works in this repository. Project-specific conventions on top of the generic skills:
 
-- API: [`docs/skills/TESTING_API_GUIDELINE.md`](./skills/TESTING_API_GUIDELINE.md)
 - Frontend: [`docs/skills/TESTING_FRONTEND_GUIDELINE.md`](./skills/TESTING_FRONTEND_GUIDELINE.md)
 - Commits: [`docs/skills/COMMIT_GUIDELINE.md`](./skills/COMMIT_GUIDELINE.md)
 
-## Principles (spec & testing guidelines)
+## Principles
 
-- Assert only external behavior: HTTP status/body, database effects, rendered state, browser flows — never private calls or internal class structure.
-- The Zod contract in `packages/shared` is the single seam between `apps/web` and `apps/api`; other tests hang off it.
-- Unit tests are co-located: `<source>.spec.ts` next to `<source>.ts`.
-- Unit tests never touch the database, network, filesystem, or a real clock.
-
-## Current state (after ticket 06)
-
-| Package | Runner | Command | Status |
-|---|---|---|---|
-| `packages/shared` | Vitest | `pnpm --filter @ticketvibe/shared test` | 27 tests (2 `healthResponseSchema` + 18 events/search contract schemas + 7 sector/event-detail contract schemas) |
-| `apps/api` | Vitest | `pnpm --filter @ticketvibe/api test` | health (unit) + events module (use case, route, integration vs `ticketvibe_test` — busca + filtros + detalhe) + categories module (unit + integration — requires `pnpm infra:up`) |
-| `apps/web` | Vitest + RTL + MSW | `pnpm --filter @ticketvibe/web test` | home (hero, carrossel, busca no header, chips de categoria, resultados), página de evento, formatters, fetch client |
-| `apps/worker` | — | no `test` script yet | verified live against Redis (see Commands below) |
-
-Existing test layout:
-
-```
-packages/shared/src/index.ts         # healthResponseSchema (Zod) — the contract seam
-packages/shared/src/index.spec.ts    # contract tests (TDD: test written first)
-apps/api/src/app.ts                  # buildApp() — Fastify instance (HTTP test seam)
-apps/api/src/app.spec.ts             # GET /health validated against the shared contract
-apps/api/src/index.ts                # composition root (listen) — not unit tested
-apps/api/src/db/{schema,client,fixtures,seed-fixtures}.ts  # Drizzle schema + seed versionado
-apps/api/src/db/test-helpers.ts        # ensure/migrate/reset (guarda: só ticketvibe_test)
-apps/api/src/modules/events/…          # hexagonal live: domain, infra, use-cases, routes
-apps/api/src/modules/events/routes/events.routes.integration.spec.ts  # Postgres real
-apps/api/src/modules/categories/…      # módulo hexagonal de categorias (unit + integração)
-apps/web/src/lib/events-api.ts         # fetchEvents + fetchEventBySlug + MSW (spec ao lado)
-apps/web/src/components/home/*.spec.tsx # RTL do hero, destaques, chips e resultados
-apps/web/src/components/event-detail.spec.tsx  # RTL do detalhe (EventDetail, skeleton, error)
-apps/web/tests/e2e/…                   # fluxos E2E (Playwright) — home, busca, filtros, página de evento
-```
+- Assert only external behavior: rendered state, HTTP responses, database effects, browser flows — never private calls or internal structure.
+- Unit tests are co-located: `<source>.spec.ts` / `<source>.spec.tsx` next to the source file.
+- Unit tests never touch the database, network, filesystem, or a real clock. Network is mocked with MSW.
+- Integration tests use the real local Postgres database `foliocraft_test` and live in `*.integration.spec.ts` files.
+- E2E tests run with Playwright against the real local stack (web on `:3000`, Mailpit API on `:8025`).
 
 ## Commands
 
-Run from the repository root:
+Run from the repository root (Node/pnpm are pinned via mise — `mise install` first):
 
 ```bash
-pnpm lint                              # biome check . (all packages, incl. apps/web)
-pnpm typecheck                         # turbo typecheck (builds web first to generate .next/types)
-pnpm test                              # turbo test (shared + api + web; packages without a test script are skipped)
-pnpm build                             # turbo build (web only today)
+pnpm lint          # biome check .
+pnpm typecheck     # tsc --noEmit
+pnpm test          # vitest run (unit + dom + integration projects)
+pnpm build         # next build
 
-pnpm --filter @ticketvibe/shared test  # just the contract tests
-pnpm --filter @ticketvibe/api test     # just the API tests
-pnpm --filter @ticketvibe/web test     # only the web tests
-pnpm --filter @ticketvibe/web test:e2e  # E2E (Playwright) — exige pnpm infra:up
+pnpm infra:up      # start Postgres 16 + Mailpit (podman compose)
+pnpm infra:down    # stop them again
+
+pnpm seed          # seed the demo account/profile (idempotent)
+pnpm test:e2e      # Playwright E2E suite
 ```
 
-Worker smoke (requires `pnpm infra:up` first — Redis must be running):
+## Three levels
 
-```bash
-timeout 10 pnpm --filter @ticketvibe/worker dev
+| Level       | Tooling                                                    | Location                       |
+| ----------- | ---------------------------------------------------------- | ------------------------------ |
+| Unit        | Vitest (node environment), co-located `.spec.ts`           | `src/**/*.spec.ts`             |
+| Component   | Vitest + Testing Library + jsdom, co-located `.spec.tsx`   | `src/**/*.spec.tsx`            |
+| Integration | Vitest against real Postgres (`foliocraft_test`) + Mailpit | `src/**/*.integration.spec.ts` |
+| E2E         | Playwright against the full local stack                    | `tests/e2e/`                   |
+
+## Vitest projects
+
+`vitest.config.ts` defines three projects:
+
+| Project       | Environment | Includes                                               | Notes                                                                                                   |
+| ------------- | ----------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
+| `unit`        | node        | `src/**/*.spec.ts` (excluding `*.integration.spec.ts`) | plain logic, Zod schemas, helpers                                                                       |
+| `dom`         | jsdom       | `src/**/*.spec.tsx`                                    | React Testing Library with jest-dom matchers                                                            |
+| `integration` | node        | `src/**/*.integration.spec.ts`                         | real database; `fileParallelism: false`; `passWithNoTests: true` until the first integration specs land |
+
+A shared `vitest.setup.ts` loads `.env` via dotenv and registers jest-dom matchers.
+
+## Spec colocation
+
+Tests live next to the code they cover:
+
 ```
-
-Expected: `[worker] listening for heartbeat jobs`, `[worker] job processed: N`, exit code `124` (the `timeout` kills a healthy persistent process).
-
-## Three levels (spec story 48) — what exists vs what's coming
-
-| Level | Tooling | Status |
-|---|---|---|
-| Unit | Vitest, co-located `.spec.ts` | **live** — `packages/shared`, `apps/api`, `apps/web` |
-| Integration (routes + real Postgres) | Vitest against local `ticketvibe_test`; helpers `ensureTestDatabase` / `migrateTestDatabase` / `resetDatabase` | **live** (requires `pnpm infra:up`; first modules: `events` and `categories`) |
-| E2E | Playwright against the real local stack (web :3000, api :3001, Mailpit API :8025) | **live** (Playwright/Chromium; primeiro fluxo: home + busca + filtros + página de evento) (auth journey at 08, full purchase journey at 13) |
-
-Hexagonal layout (live since tickets 04–05 — `modules/events` and `modules/categories`):
-
+src/lib/env.ts
+src/lib/env.spec.ts
+src/app/page.tsx
+src/app/page.spec.tsx
+src/app/[slug]/…/x.integration.spec.ts   # integration with the database
 ```
-apps/api/src/modules/<domain>/
-├── domain/      # entity types, DomainError, repository contract (interface)
-├── infra/       # drizzle-<entity>-repository.ts + in-memory-<entity>-repository.ts
-├── use-cases/   # <verb>-<noun>.use-case.ts + co-located <verb>-<noun>.use-case.spec.ts
-├── schemas/     # Zod schemas (reusing packages/shared wherever the contract is shared)
-└── routes/      # Fastify routes
-```
-
-## Coverage
-
-- Coverage tooling is **not installed yet**; tickets 04/05 explicitly deferred it (recorded in the ticket deferrals — see `issues/06`).
-- Planned policy (per the testing guidelines in `docs/skills/`; the spec defers coverage guidance to this doc): minimum 80% lines/functions/statements/branches on business-logic paths — `apps/api/src/modules/**/{use-cases,domain}/**` and `apps/web/src/{components,hooks,lib}/**`. Infrastructure and framework glue are covered by integration/E2E instead, not by the unit gate.
-- E2E tests complement unit coverage and are never measured by it.
 
 ## Gates (Lefthook)
 
-- **pre-commit:** `pnpm exec biome check --write --staged --files-ignore-unknown=true --no-errors-on-unmatched && git update-index --again`
-- **pre-push:** `pnpm typecheck` then `pnpm test`
-- E2E is not in the hooks (manual now, cloud CI out of scope for this study project).
+- **pre-commit:** Biome on staged files (`biome check --write --staged && git update-index --again`) + `pnpm typecheck`
+- **pre-push:** `pnpm test`
+- **commit-msg:** commitlint (Conventional Commits, English)
+
+## CI
+
+`.github/workflows/ci.yml` runs two jobs on every push/PR:
+
+1. **checks:** `pnpm install --frozen-lockfile` → `pnpm lint` → `pnpm typecheck` → `pnpm test`
+2. **build:** same install, with a `postgres:16-alpine` service and the required build env vars, then `pnpm build`. Once migrations exist (database-schema task), `pnpm db:migrate` runs before the build.
+
+The E2E job (Playwright + Postgres + Mailpit services) is added in a later task.
+
+## Coverage
+
+Coverage tooling is not configured yet; it will be introduced together with the first business-logic modules. The planned policy: minimum 80% lines/functions/statements/branches on business-logic paths (`src/lib/**`, `src/components/**`, server actions), with infrastructure and framework glue covered by integration/E2E instead of the unit gate.

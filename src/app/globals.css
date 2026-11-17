@@ -1,0 +1,14 @@
+@import "tailwindcss";
+
+/* Design tokens — the only place where raw color values may appear. */
+@theme {
+	--color-background: #ffffff;
+	--color-foreground: #111827;
+	--font-sans: ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+	background-color: var(--color-background);
+	color: var(--color-foreground);
+	font-family: var(--font-sans);
+}
