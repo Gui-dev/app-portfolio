@@ -13,27 +13,27 @@ autenticação, exportação de PDF e disciplina de testes/CI em um produto coes
 
 ## 1. Decisões fechadas
 
-| # | Decisão | Escolha |
-|---|---|---|
-| 1 | Objetivo | Portfólio (qualidade de produção onde for barato) |
-| 2 | Audiência do formulário | Genérica (não só dev) |
-| 3 | Framework | Next.js 15 App Router + TypeScript |
-| 4 | Deploy | Local agora; alvo de deploy adiado (container é o caminho natural por causa do Chromium) |
-| 5 | Auth | Email + senha **e** GitHub (Better Auth) |
-| 6 | Idioma | UI em pt-BR; código, commits, README e docs em inglês |
-| 7 | Banco | Postgres 16 + Drizzle ORM, via Podman Compose |
-| 8 | Renderização | SSG + ISR on-demand para páginas públicas; SSR no dashboard |
-| 9 | PDF | Playwright renderizando `/[slug]/print` (fonte única) |
-| 10 | Tema | 3 templates do Figma (**Minimal, Developer, Modern**) × light/dark + monograma (gradiente/sólido/contorno) |
-| 11 | Avatar | Sem upload; monograma com iniciais |
-| 12 | Slug | Único, editável, escrow em `slug_history` com 301/308 |
-| 13 | Formulário | Editor em abas com autosave; rascunho ≠ publicado; publicação explícita |
-| 14 | Currículos por conta | Um (tabela `profiles` separada de `users`, pronta para crescer) |
-| 15 | Email | Mailpit em dev; Nodemailer/SMTP abstrato |
-| 16 | Escopo SEO | Metadata, JSON-LD Person, OG image dinâmica, sitemap, robots, `/explore` |
-| 17 | Dashboard | O editor **é** o dashboard; sem listagem |
-| 18 | Testes | Vitest (unidade/integração) + RTL/MSW + Playwright e2e + CI |
-| 19 | Ferramentas | pnpm, Zod, Biome, Lefthook, react-hook-form |
+| #   | Decisão                 | Escolha                                                                                                    |
+| --- | ----------------------- | ---------------------------------------------------------------------------------------------------------- |
+| 1   | Objetivo                | Portfólio (qualidade de produção onde for barato)                                                          |
+| 2   | Audiência do formulário | Genérica (não só dev)                                                                                      |
+| 3   | Framework               | Next.js 15 App Router + TypeScript                                                                         |
+| 4   | Deploy                  | Local agora; alvo de deploy adiado (container é o caminho natural por causa do Chromium)                   |
+| 5   | Auth                    | Email + senha **e** GitHub (Better Auth)                                                                   |
+| 6   | Idioma                  | UI em pt-BR; código, commits, README e docs em inglês                                                      |
+| 7   | Banco                   | Postgres 16 + Drizzle ORM, via Podman Compose                                                              |
+| 8   | Renderização            | SSG + ISR on-demand para páginas públicas; SSR no dashboard                                                |
+| 9   | PDF                     | Playwright renderizando `/[slug]/print` (fonte única)                                                      |
+| 10  | Tema                    | 3 templates do Figma (**Minimal, Developer, Modern**) × light/dark + monograma (gradiente/sólido/contorno) |
+| 11  | Avatar                  | Sem upload; monograma com iniciais                                                                         |
+| 12  | Slug                    | Único, editável, escrow em `slug_history` com 301/308                                                      |
+| 13  | Formulário              | Editor em abas com autosave; rascunho ≠ publicado; publicação explícita                                    |
+| 14  | Currículos por conta    | Um (tabela `profiles` separada de `users`, pronta para crescer)                                            |
+| 15  | Email                   | Mailpit em dev; Nodemailer/SMTP abstrato                                                                   |
+| 16  | Escopo SEO              | Metadata, JSON-LD Person, OG image dinâmica, sitemap, robots, `/explore`                                   |
+| 17  | Dashboard               | O editor **é** o dashboard; sem listagem                                                                   |
+| 18  | Testes                  | Vitest (unidade/integração) + RTL/MSW + Playwright e2e + CI                                                |
+| 19  | Ferramentas             | pnpm, Zod, Biome, Lefthook, react-hook-form                                                                |
 
 ---
 
@@ -59,22 +59,22 @@ autenticação, exportação de PDF e disciplina de testes/CI em um produto coes
 
 ## 3. Rotas
 
-| Rota | Render | Comportamento |
-|---|---|---|
-| `/` | SSG | Landing; CTA para signup e link para o perfil demo |
-| `/explore` | ISR 300s + `revalidatePath` | Perfis publicados, 12/página; página 1 em `/explore`, seguintes em `/explore/page/[n]` |
-| `/[slug]` | **SSG + ISR** | `generateStaticParams` (publicados, máx. 100), `revalidate = 300`, `dynamicParams`, `notFound()` para rascunho/inexistente, 301/308 para slug antigo |
-| `/[slug]/print` | SSR | Fonte única do PDF; `noindex`; 404 para rascunho; resolve slug antigo |
-| `/api/pdf/[slug]` | Node runtime | Playwright → PDF A4; 404 para rascunho; 503 se Chromium falhar |
-| `/[slug]/opengraph-image` | Node runtime | `ImageResponse` 1200×630 com o tema do perfil; 404 para rascunho |
-| `/opengraph-image` | Node runtime | OG da landing |
-| `/sitemap.xml`, `/robots.txt` | `sitemap.ts` / `robots.ts` | Só publicados; bloqueiam dashboard/auth/api |
-| `/login`, `/signup` | SSR | Better Auth |
-| `/forgot-password`, `/reset-password` | SSR | Fluxo por email (Mailpit em dev) |
-| `/dashboard` | SSR dinâmico | **Editor**, protegido por sessão |
-| `/dashboard/settings` | SSR dinâmico | Senha, GitHub conectado, excluir conta |
-| `/api/auth/[...all]` | — | Handler do Better Auth |
-| 404 | — | Página própria reutilizada |
+| Rota                                  | Render                      | Comportamento                                                                                                                                        |
+| ------------------------------------- | --------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `/`                                   | SSG                         | Landing; CTA para signup e link para o perfil demo                                                                                                   |
+| `/explore`                            | ISR 300s + `revalidatePath` | Perfis publicados, 12/página; página 1 em `/explore`, seguintes em `/explore/page/[n]`                                                               |
+| `/[slug]`                             | **SSG + ISR**               | `generateStaticParams` (publicados, máx. 100), `revalidate = 300`, `dynamicParams`, `notFound()` para rascunho/inexistente, 301/308 para slug antigo |
+| `/[slug]/print`                       | SSR                         | Fonte única do PDF; `noindex`; 404 para rascunho; resolve slug antigo                                                                                |
+| `/api/pdf/[slug]`                     | Node runtime                | Playwright → PDF A4; 404 para rascunho; 503 se Chromium falhar                                                                                       |
+| `/[slug]/opengraph-image`             | Node runtime                | `ImageResponse` 1200×630 com o tema do perfil; 404 para rascunho                                                                                     |
+| `/opengraph-image`                    | Node runtime                | OG da landing                                                                                                                                        |
+| `/sitemap.xml`, `/robots.txt`         | `sitemap.ts` / `robots.ts`  | Só publicados; bloqueiam dashboard/auth/api                                                                                                          |
+| `/login`, `/signup`                   | SSR                         | Better Auth                                                                                                                                          |
+| `/forgot-password`, `/reset-password` | SSR                         | Fluxo por email (Mailpit em dev)                                                                                                                     |
+| `/dashboard`                          | SSR dinâmico                | **Editor**, protegido por sessão                                                                                                                     |
+| `/dashboard/settings`                 | SSR dinâmico                | Senha, GitHub conectado, excluir conta                                                                                                               |
+| `/api/auth/[...all]`                  | —                           | Handler do Better Auth                                                                                                                               |
+| 404                                   | —                           | Página própria reutilizada                                                                                                                           |
 
 Regras de slug: 3–30 caracteres, `^[a-z0-9]+(?:-[a-z0-9]+)*$`, reservados bloqueados
 (`api, auth, dashboard, explore, login, signup, forgot-password, reset-password, settings,
@@ -89,20 +89,20 @@ case-insensitive. Troca de slug grava o antigo em `slug_history` (único) e resp
 Enums:
 
 ```ts
-template       = 'minimal' | 'developer' | 'modern'
-color_mode     = 'light' | 'dark'
-monogram_style = 'gradient' | 'solid' | 'outline'
-experience_kind = 'formal' | 'freelance' | 'open-source' | 'academic' | 'volunteer'
+template = "minimal" | "developer" | "modern";
+color_mode = "light" | "dark";
+monogram_style = "gradient" | "solid" | "outline";
+experience_kind = "formal" | "freelance" | "open-source" | "academic" | "volunteer";
 ```
 
-| Tabela | Campos |
-|---|---|
-| `user`, `session`, `account`, `verification` | Geradas pelo CLI do Better Auth (não editar à mão) |
-| `profiles` | `id uuid pk`, `user_id text unique fk→user cascade`, `slug text unique`, `full_name`, `headline`, `bio`, `location`, `contact_email`, `github_url`, `linkedin_url`, `monogram_style`, `template`, `color_mode`, `is_published bool default false`, `published_at`, `created_at`, `updated_at` |
-| `experiences` | `id`, `profile_id fk cascade`, `kind` (default `formal`), `role`, `company`, `period`, `description`, `sort_order int` |
-| `projects` | `id`, `profile_id fk cascade`, `name`, `description`, `repo_url`, `demo_url`, `tags text[]`, `sort_order int` |
-| `skills` | `id`, `profile_id fk cascade`, `name`, `sort_order int` |
-| `slug_history` | `id`, `profile_id fk cascade`, `slug text unique`, `created_at` |
+| Tabela                                       | Campos                                                                                                                                                                                                                                                                                        |
+| -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `user`, `session`, `account`, `verification` | Geradas pelo CLI do Better Auth (não editar à mão)                                                                                                                                                                                                                                            |
+| `profiles`                                   | `id uuid pk`, `user_id text unique fk→user cascade`, `slug text unique`, `full_name`, `headline`, `bio`, `location`, `contact_email`, `github_url`, `linkedin_url`, `monogram_style`, `template`, `color_mode`, `is_published bool default false`, `published_at`, `created_at`, `updated_at` |
+| `experiences`                                | `id`, `profile_id fk cascade`, `kind` (default `formal`), `role`, `company`, `period`, `description`, `sort_order int`                                                                                                                                                                        |
+| `projects`                                   | `id`, `profile_id fk cascade`, `name`, `description`, `repo_url`, `demo_url`, `tags text[]`, `sort_order int`                                                                                                                                                                                 |
+| `skills`                                     | `id`, `profile_id fk cascade`, `name`, `sort_order int`                                                                                                                                                                                                                                       |
+| `slug_history`                               | `id`, `profile_id fk cascade`, `slug text unique`, `created_at`                                                                                                                                                                                                                               |
 
 Índices: `experiences(profile_id, sort_order)`, `projects(profile_id, sort_order)`,
 `skills(profile_id, sort_order)`, `slug_history(profile_id)`.
@@ -185,11 +185,11 @@ e cor de modo são independentes. Tokens expostos por CSS vars no elemento raiz 
 pública (`--fg`, `--bg`, `--surface`, `--border`, `--accent`, `--accent-2`, `--muted`) e por
 `data-template` para regras de tipografia/layout — nunca por classes dinâmicas arbitrárias.
 
-| Template | Caráter | Display | Corpo | Acento |
-|---|---|---|---|---|
-| **Minimal** | Editorial: serifada, divisórias limpas, muito espaço branco | Fraunces 600 | Inter 400/500 | neutro (tinta) |
-| **Developer** | Terminal: mono, denso, `//` e labels de código | JetBrains Mono 600 | Inter 400/500 | Emerald `#10B981` |
-| **Modern** (padrão) | SaaS: cards elevados, sans geométrica | Plus Jakarta Sans 700 | Inter 400/500 | Indigo `#6366F1`, accent-2 `#22D3EE` |
+| Template            | Caráter                                                     | Display               | Corpo         | Acento                               |
+| ------------------- | ----------------------------------------------------------- | --------------------- | ------------- | ------------------------------------ |
+| **Minimal**         | Editorial: serifada, divisórias limpas, muito espaço branco | Fraunces 600          | Inter 400/500 | neutro (tinta)                       |
+| **Developer**       | Terminal: mono, denso, `//` e labels de código              | JetBrains Mono 600    | Inter 400/500 | Emerald `#10B981`                    |
+| **Modern** (padrão) | SaaS: cards elevados, sans geométrica                       | Plus Jakarta Sans 700 | Inter 400/500 | Indigo `#6366F1`, accent-2 `#22D3EE` |
 
 Paleta base do template Modern (também usada na UI do app): fundo `#0B0F19`, superfície
 `#111827`, borda `#1E293B`, texto `#F1F5F9`, texto suave `#94A3B8`, acento `#6366F1`,
@@ -258,21 +258,21 @@ Convenções herdadas de `docs/skills/` e adaptadas:
 
 Arquivo **"Folio craft"**, página `Page 1` (fonte: import de HTML, layout em ajuste pelo autor).
 
-| Nó | Conteúdo |
-|---|---|
-| `1:177` | Tela **home** (split 1056 + 864) — referência de layout |
-| `1:180` | Header do editor |
-| `1:205` | Barra de abas |
-| `1:227` | Conteúdo da aba Perfil |
-| `1:305` | Footer fixo |
-| `1:319` | Painel de preview |
-| `1:337` | Browser mockup + página pública |
-| `8:824` | Conteúdo isolado da aba Experiência (791px) |
-| `8:506` | Conteúdo isolado da aba Projetos |
-| `7:209` | Conteúdo isolado da aba Skills |
-| `8:1116` | Conteúdo isolado da aba Aparência |
-| `8:1180/8:1202/8:1228` | Cards dos templates Minimal / Developer / Modern |
-| `1:109` | Componentes (botões, tabs, pills) |
+| Nó                     | Conteúdo                                                |
+| ---------------------- | ------------------------------------------------------- |
+| `1:177`                | Tela **home** (split 1056 + 864) — referência de layout |
+| `1:180`                | Header do editor                                        |
+| `1:205`                | Barra de abas                                           |
+| `1:227`                | Conteúdo da aba Perfil                                  |
+| `1:305`                | Footer fixo                                             |
+| `1:319`                | Painel de preview                                       |
+| `1:337`                | Browser mockup + página pública                         |
+| `8:824`                | Conteúdo isolado da aba Experiência (791px)             |
+| `8:506`                | Conteúdo isolado da aba Projetos                        |
+| `7:209`                | Conteúdo isolado da aba Skills                          |
+| `8:1116`               | Conteúdo isolado da aba Aparência                       |
+| `8:1180/8:1202/8:1228` | Cards dos templates Minimal / Developer / Modern        |
+| `1:109`                | Componentes (botões, tabs, pills)                       |
 
 Protocolo: antes de implementar tela que dependa do Figma, chamar `get_design_context` no nó
 correspondente e `design_diff` contra o baseline em `.figwright/snapshots/`; **nunca medir por

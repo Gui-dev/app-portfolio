@@ -35,20 +35,20 @@
 
 - **Slug hostil:** reservado, já tomado, com acento/espaços, ou reclaim do próprio slug antigo
   — deve retornar erro de campo amigável, nunca 500 nem linha duplicada em histórico.
-  *(tests: Task 5 — `slug.spec`, `queries.integration.spec`; Task 7 — `actions.integration.spec`)*
+  _(tests: Task 5 — `slug.spec`, `queries.integration.spec`; Task 7 — `actions.integration.spec`)_
 - **Vazamento de rascunho:** `/[slug]`, `/[slug]/print` e `/api/pdf/[slug]` de perfil não
   publicado devem dar 404, e slug antigo não pode redirecionar para rascunho.
-  *(tests: Task 5, Task 10, Task 12)*
+  _(tests: Task 5, Task 10, Task 12)_
 - **Injeção:** HTML/markup em nome/bio/descrições aparece escapado; URLs só `http(s)`;
   JSON-LD com `<` escapado como `\u003c`.
-  *(tests: Task 5 — URL `javascript:`; Task 6 — texto escapado; Task 11 — JSON-LD)*
+  _(tests: Task 5 — URL `javascript:`; Task 6 — texto escapado; Task 11 — JSON-LD)_
 - **PDF frágil:** Chromium ausente, timeout ou perfil vazio não podem pendurar a request —
   503 claro no primeiro caso, PDF válido no último.
-  *(tests: Task 12)*
+  _(tests: Task 12)_
 - **Deriva de template:** preview, página pública e PDF devem renderizar o mesmo template e as
-  mesmas CSS vars. *(tests: Task 6 — `data-template`/vars; Task 9 — preview; Task 10/12 — público e impressão)*
+  mesmas CSS vars. _(tests: Task 6 — `data-template`/vars; Task 9 — preview; Task 10/12 — público e impressão)_
 - **Conteúdo extremo:** zero seções, 100 skills, bio longa, nome de uma palavra ou vazio não
-  quebram layout nem monograma. *(tests: Task 6 — `portfolio-page.spec`, `initials.spec`)*
+  quebram layout nem monograma. _(tests: Task 6 — `portfolio-page.spec`, `initials.spec`)_
 
 ---
 
@@ -91,6 +91,7 @@ docs/TESTING.md      # regravado para FolioCraft na Task 1
 ### Task 1: Bootstrap, tooling e infraestrutura local
 
 **Files:**
+
 - Create: `.mise.toml`, `.nvmrc`, `.gitignore`, `package.json`, `tsconfig.json`, `next.config.ts`,
   `postcss.config.mjs`, `biome.json`, `lefthook.yml`, `commitlint.config.mjs`, `compose.yaml`,
   `.env.example`, `vitest.config.ts`, `vitest.setup.ts`, `src/lib/env.ts`, `src/app/layout.tsx`,
@@ -99,6 +100,7 @@ docs/TESTING.md      # regravado para FolioCraft na Task 1
 - Modify: `docs/skills/COMMIT_GUIDELINE.md` (remover referência a TICKETVIBE no título)
 
 **Interfaces:**
+
 - Consumes: nada
 - Produces: `env` (objeto Zod-validado com `DATABASE_URL`, `DATABASE_TEST_URL`,
   `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, `GITHUB_CLIENT_ID?`, `GITHUB_CLIENT_SECRET?`,
@@ -133,6 +135,7 @@ vitest @vitejs/plugin-react jsdom @testing-library/react @testing-library/jest-d
 `biome.json`: `"indentStyle": "tab"` (padrão do Biome, igual aos docs herdados),
 `"lineWidth": 100`, lint recommended, organizar imports.
 `lefthook.yml`:
+
 ```yaml
 pre-commit:
   jobs:
@@ -196,6 +199,7 @@ como referência genérica.
 
 Run: `pnpm lint && pnpm typecheck && pnpm test && pnpm build`
 Expected: todos exit 0. O `build` exige `pnpm infra:up` (banco no ar e migrado).
+
 ```bash
 git add -A
 git commit -m "chore: bootstrap nextjs app with pnpm biome and podman infra"
@@ -206,6 +210,7 @@ git commit -m "chore: bootstrap nextjs app with pnpm biome and podman infra"
 ### Task 2: Design tokens, primitivas de UI e landing
 
 **Files:**
+
 - Create: `src/app/globals.css` (tokens), `src/app/layout.tsx` (fontes),
   `src/components/ui/{button,input,textarea,label,tabs,switch,select,badge}.tsx`,
   `src/components/marketing/{site-header,hero,feature-grid,site-footer}.tsx` + specs,
@@ -213,6 +218,7 @@ git commit -m "chore: bootstrap nextjs app with pnpm biome and podman infra"
 - Modify: `src/app/page.spec.tsx`
 
 **Interfaces:**
+
 - Consumes: `env` (Task 1)
 - Produces: `Button` (variants `default | secondary | ghost | outline`, `asChild`),
   `Input`, `Textarea`, `Label`, `Tabs` (`Tabs`, `TabsList`, `TabsTrigger`, `TabsContent`),
@@ -258,6 +264,7 @@ JetBrains Mono em pills/labels. Enviar o screenshot para revisão **antes** da T
 - [ ] **Step 6: Gate e commit**
 
 Run: `pnpm lint && pnpm typecheck && pnpm test`
+
 ```bash
 git add -A
 git commit -m "feat(landing): add design tokens ui primitives and marketing page"
@@ -268,11 +275,13 @@ git commit -m "feat(landing): add design tokens ui primitives and marketing page
 ### Task 3: Schema do banco e migrations
 
 **Files:**
+
 - Create: `src/lib/db/schema.ts`, `src/lib/db/client.ts`, `drizzle.config.ts`,
   `drizzle/0000_profiles.sql` (gerada)
 - Modify: `compose.yaml` (garantir `scripts/init-test-db.sql` montado)
 
 **Interfaces:**
+
 - Consumes: `env.DATABASE_URL`
 - Produces: `db` (cliente Drizzle tipado); tabelas `profiles`, `experiences`, `projects`,
   `skills`, `slugHistory`; tipos `Profile`, `NewProfile`, `ProfileWithRelations`,
@@ -308,6 +317,7 @@ Expected: colunas, defaults, unique de `slug` e `user_id`, FK cascade.
 - [ ] **Step 5: Gate e commit**
 
 Run: `pnpm typecheck && pnpm lint`
+
 ```bash
 git add -A
 git commit -m "feat(db): add profile schema and migrations"
@@ -318,6 +328,7 @@ git commit -m "feat(db): add profile schema and migrations"
 ### Task 4: Autenticação com Better Auth, email e GitHub
 
 **Files:**
+
 - Create: `src/lib/auth.ts`, `src/lib/auth-client.ts`, `src/lib/email.ts`,
   `src/lib/email-templates.ts` + spec, `src/app/api/auth/[...all]/route.ts`,
   `src/app/(auth)/layout.tsx`, `src/app/(auth)/{login,signup,forgot-password,reset-password}/page.tsx`,
@@ -328,6 +339,7 @@ git commit -m "feat(db): add profile schema and migrations"
 - Modify: `package.json` (`test:e2e` já existe), `src/lib/env.ts` (se precisar de var nova)
 
 **Interfaces:**
+
 - Consumes: `db`, `env`, `profiles` (ainda não usada)
 - Produces: `auth` (server), `authClient` (client com `signUp.email`, `signIn.email`,
   `signIn.social`, `signOut`, `forgetPassword`, `resetPassword`, `changePassword`);
@@ -393,6 +405,7 @@ Expected: 2 passing (stack local no ar).
 - [ ] **Step 7: Gate e commit**
 
 Run: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e tests/e2e/auth.spec.ts`
+
 ```bash
 git add -A
 git commit -m "feat(auth): add better auth with email verification and github login"
@@ -403,12 +416,14 @@ git commit -m "feat(auth): add better auth with email verification and github lo
 ### Task 5: Domínio — slug, contratos Zod e queries
 
 **Files:**
+
 - Create: `src/lib/slug.ts` + spec, `src/lib/validation/profile.ts` + spec,
   `src/lib/urls.ts` (refine `http(s)`), `src/lib/db/test-helpers.ts`,
   `src/lib/db/queries.ts` + `queries.integration.spec.ts`
 - Modify: `package.json` (script `test:integration` opcional)
 
 **Interfaces:**
+
 - Consumes: `db`, tipos do schema
 - Produces: `normalizeSlug`, `validateSlug`, `RESERVED_SLUGS`, `isReservedSlug`;
   `ProfileDraftSchema`, `ProfileDraft`; queries `getProfileForUser`,
@@ -418,15 +433,23 @@ git commit -m "feat(auth): add better auth with email verification and github lo
 - [ ] **Step 1: Teste do slug (falhando)**
 
 `src/lib/slug.spec.ts`:
+
 ```ts
-it('should normalize spaces and case', () => expect(normalizeSlug('  Lucas Almeida ')).toBe('lucas-almeida'))
-it('should strip invalid characters and collapse dashes', () => expect(normalizeSlug('Lucas_Almeida!!--dev')).toBe('lucas-almeida-dev'))
-it('should reject slugs shorter than 3', () => expect(validateSlug('ab')).toEqual({ ok: false, reason: 'length' }))
-it('should reject more than 30 characters', () => expect(validateSlug('a'.repeat(31)).ok).toBe(false))
-it('should reject consecutive dashes', () => expect(validateSlug('lucas--almeida')).toEqual({ ok: false, reason: 'charset' }))
-it('should reject a leading dash', () => expect(validateSlug('-lucas')).toEqual({ ok: false, reason: 'charset' }))
-it('should reject reserved words', () => expect(validateSlug('dashboard')).toEqual({ ok: false, reason: 'reserved' }))
-it('should accept a valid slug', () => expect(validateSlug('bruce-wayne')).toEqual({ ok: true }))
+it("should normalize spaces and case", () =>
+	expect(normalizeSlug("  Lucas Almeida ")).toBe("lucas-almeida"));
+it("should strip invalid characters and collapse dashes", () =>
+	expect(normalizeSlug("Lucas_Almeida!!--dev")).toBe("lucas-almeida-dev"));
+it("should reject slugs shorter than 3", () =>
+	expect(validateSlug("ab")).toEqual({ ok: false, reason: "length" }));
+it("should reject more than 30 characters", () =>
+	expect(validateSlug("a".repeat(31)).ok).toBe(false));
+it("should reject consecutive dashes", () =>
+	expect(validateSlug("lucas--almeida")).toEqual({ ok: false, reason: "charset" }));
+it("should reject a leading dash", () =>
+	expect(validateSlug("-lucas")).toEqual({ ok: false, reason: "charset" }));
+it("should reject reserved words", () =>
+	expect(validateSlug("dashboard")).toEqual({ ok: false, reason: "reserved" }));
+it("should accept a valid slug", () => expect(validateSlug("bruce-wayne")).toEqual({ ok: true }));
 ```
 Run: `pnpm vitest run src/lib/slug.spec.ts`
 Expected: FAIL (módulo não existe).
@@ -479,6 +502,7 @@ ordenação; `resolveSlugRedirect` só resolve alvo com `isPublished = true`.
 - [ ] **Step 6: Gate e commit**
 
 Run: `pnpm lint && pnpm typecheck && pnpm test`
+
 ```bash
 git add -A
 git commit -m "feat(domain): add slug rules zod contracts and profile queries"
@@ -489,12 +513,14 @@ git commit -m "feat(domain): add slug rules zod contracts and profile queries"
 ### Task 6: Templates, monograma e `PortfolioPage`
 
 **Files:**
+
 - Create: `src/lib/template.ts` + spec, `src/lib/initials.ts` + spec,
   `src/lib/experience-kinds.ts` + spec, `src/components/portfolio/portfolio-page.tsx` + spec,
   `src/components/portfolio/{monogram,section-heading,experience-list,project-list,skill-list,social-links}.tsx`
 - Modify: `src/app/globals.css` (vars por `[data-mode]` e tipografia por `[data-template]`)
 
 **Interfaces:**
+
 - Consumes: `ProfileWithRelations`, `Template`, `ColorMode`, `MonogramStyle`, `ExperienceKind`
 - Produces: `TEMPLATES`, `templateStyle`, `initials`, `EXPERIENCE_KINDS`, `PortfolioPage` com
   props `{ profile: ProfileWithRelations; className?: string }` (usa `profile.template` /
@@ -504,11 +530,21 @@ git commit -m "feat(domain): add slug rules zod contracts and profile queries"
 - [ ] **Step 1: Testes de template, monograma e kinds (falhando)**
 
 `template.spec.ts`:
+
 ```ts
-it('should expose the three templates', () => expect(Object.keys(TEMPLATES)).toEqual(['minimal', 'developer', 'modern']))
-it('should map the modern template to css variables', () => expect(templateStyle('modern', 'dark')).toMatchObject({ '--accent': '#6366F1', '--accent-2': '#22D3EE' }))
-it('should use the emerald accent for the developer template', () => expect(templateStyle('developer', 'dark')['--accent']).toBe('#10B981'))
-it('should use different backgrounds for light and dark', () => expect(templateStyle('modern', 'light')['--bg']).not.toBe(templateStyle('modern', 'dark')['--bg']))
+it("should expose the three templates", () =>
+	expect(Object.keys(TEMPLATES)).toEqual(["minimal", "developer", "modern"]));
+it("should map the modern template to css variables", () =>
+	expect(templateStyle("modern", "dark")).toMatchObject({
+		"--accent": "#6366F1",
+		"--accent-2": "#22D3EE",
+	}));
+it("should use the emerald accent for the developer template", () =>
+	expect(templateStyle("developer", "dark")["--accent"]).toBe("#10B981"));
+it("should use different backgrounds for light and dark", () =>
+	expect(templateStyle("modern", "light")["--bg"]).not.toBe(
+		templateStyle("modern", "dark")["--bg"],
+	));
 ```
 `initials.spec.ts`: `'Lucas Almeida'→'LA'`, `'Bruce Wayne'→'BW'`, `'Cher'→'C'`, `'Ana Maria
 Braga'→'AB'`, `'  lucas   almeida  '→'LA'`, `''→'?'`.
@@ -526,15 +562,16 @@ Run: testes acima → PASS.
 - [ ] **Step 3: Testes do `PortfolioPage` (falhando)**
 
 `portfolio-page.spec.tsx`:
+
 ```ts
-it('should render name, headline, bio and initials')          // getByRole('heading', { name: 'Bruce Wayne' }), getByText('BW')
-it('should render social links with rel noopener')             // href github/linkedin, rel contém noopener
-it('should hide empty sections')                              // sem experiência/projetos/skills não há heading "Experiência"
-it('should render 100 skills without crashing')                // getAllByRole('listitem').length === 100
-it('should escape markup in the bio')                          // bio '<script>alert(1)</script>' aparece como texto, sem <script> no container
-it('should order experiences by sortOrder')                    // primeiro heading de cargo é o de sortOrder 0
-it('should expose the selected template and mode')             // data-template="developer", data-mode="light"
-it('should render the experience kind label')                  // badge "Open Source"
+it("should render name, headline, bio and initials"); // getByRole('heading', { name: 'Bruce Wayne' }), getByText('BW')
+it("should render social links with rel noopener"); // href github/linkedin, rel contém noopener
+it("should hide empty sections"); // sem experiência/projetos/skills não há heading "Experiência"
+it("should render 100 skills without crashing"); // getAllByRole('listitem').length === 100
+it("should escape markup in the bio"); // bio '<script>alert(1)</script>' aparece como texto, sem <script> no container
+it("should order experiences by sortOrder"); // primeiro heading de cargo é o de sortOrder 0
+it("should expose the selected template and mode"); // data-template="developer", data-mode="light"
+it("should render the experience kind label"); // badge "Open Source"
 ```
 Run → FAIL.
 
@@ -557,6 +594,7 @@ layout do Figma**, não por screenshot.
 - [ ] **Step 6: Gate e commit**
 
 Run: `pnpm lint && pnpm typecheck && pnpm test`
+
 ```bash
 git add -A
 git commit -m "feat(portfolio): add templates monogram and portfolio renderer"
@@ -567,6 +605,7 @@ git commit -m "feat(portfolio): add templates monogram and portfolio renderer"
 ### Task 7: Editor — shell, aba Perfil, autosave e publicação
 
 **Files:**
+
 - Create: `src/app/dashboard/actions.ts` + `actions.integration.spec.ts`,
   `src/app/dashboard/layout.tsx` (substitui placeholder), `src/app/dashboard/page.tsx`,
   `src/components/editor/{editor-shell,tab-nav,sticky-action-bar,preview-panel,profile-form}.tsx` + specs,
@@ -574,6 +613,7 @@ git commit -m "feat(portfolio): add templates monogram and portfolio renderer"
 - Modify: `src/components/ui/*` (se faltar primitiva)
 
 **Interfaces:**
+
 - Consumes: `queries`, `ProfileDraftSchema`, `slug`, `auth`
 - Produces: Server Actions `saveProfileDraft(input: ProfileDraft)`, `publishProfile()`,
   `unpublishProfile()`; `ensureProfileForUser(userId, email)`; hook
@@ -639,6 +679,7 @@ Run: `pnpm test:e2e tests/e2e/editor.spec.ts` → 2 passing.
 - [ ] **Step 7: Gate e commit**
 
 Run: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e tests/e2e/editor.spec.ts`
+
 ```bash
 git add -A
 git commit -m "feat(editor): add dashboard shell profile form autosave and publish"
@@ -649,12 +690,14 @@ git commit -m "feat(editor): add dashboard shell profile form autosave and publi
 ### Task 8: Abas Experiência, Projetos e Skills
 
 **Files:**
+
 - Create: `src/components/editor/{experience-form,projects-form,skills-form}.tsx` + specs,
   `src/components/editor/repeatable-item.tsx`, `src/components/editor/beginner-helper.tsx` + spec,
   `src/lib/samples.ts` + spec
 - Modify: `src/components/editor/tab-nav.tsx`, `src/app/dashboard/actions.ts` (payload completo)
 
 **Interfaces:**
+
 - Consumes: `ProfileDraft`, `saveProfileDraft`, `useAutosave`, `EXPERIENCE_KINDS`,
   `BEGINNER_SAMPLES`
 - Produces: formulários com `useFieldArray` que produzem `experiences`/`projects`/`skills`
@@ -707,6 +750,7 @@ Run → passing.
 - [ ] **Step 5: Gate e commit**
 
 Run: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e tests/e2e/editor.spec.ts`
+
 ```bash
 git add -A
 git commit -m "feat(editor): add experience projects and skills sections"
@@ -717,12 +761,14 @@ git commit -m "feat(editor): add experience projects and skills sections"
 ### Task 9: Aba Aparência e preview ao vivo
 
 **Files:**
+
 - Create: `src/components/editor/appearance-form.tsx` + spec,
   `src/components/editor/preview-panel.tsx` + spec, `src/components/editor/use-preview-profile.ts`
 - Modify: `src/components/editor/editor-shell.tsx` (estado compartilhado via
   `FormProvider` + `useWatch`), `src/app/dashboard/page.tsx`
 
 **Interfaces:**
+
 - Consumes: `TEMPLATES`, `templateStyle`, `PortfolioPage`, `ProfileDraft`, `EXPERIENCE_KINDS`
 - Produces: `usePreviewProfile()` retornando o `ProfileWithRelations` montado a partir dos
   valores observados do formulário (filhos com `id` temporário); `PreviewPanel` com toolbar
@@ -772,6 +818,7 @@ Run → passing.
 - [ ] **Step 6: Gate e commit**
 
 Run: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e tests/e2e/editor.spec.ts`
+
 ```bash
 git add -A
 git commit -m "feat(editor): add appearance tab with live preview"
@@ -782,12 +829,14 @@ git commit -m "feat(editor): add appearance tab with live preview"
 ### Task 10: Página pública, ISR, redirect de slug e 404
 
 **Files:**
+
 - Create: `src/app/[slug]/page.tsx`, `src/app/not-found.tsx`,
   `tests/e2e/public-page.spec.ts`, `tests/e2e/slug-redirect.spec.ts`
 - Modify: `src/app/dashboard/actions.ts` (garantir revalidação), `src/app/page.tsx` (link demo
   continua válido)
 
 **Interfaces:**
+
 - Consumes: `getPublicProfileBySlug`, `resolveSlugRedirect`, `PortfolioPage`
 - Produces: rota pública com `generateStaticParams` (publicados, máx. 100),
   `export const revalidate = 300`, `dynamicParams = true`; `notFound()` para rascunho.
@@ -821,6 +870,7 @@ pública e vê o novo texto (prova `revalidatePath`).
 - [ ] **Step 4: Gate e commit**
 
 Run: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e tests/e2e/public-page.spec.ts tests/e2e/slug-redirect.spec.ts`
+
 ```bash
 git add -A
 git commit -m "feat(public): add isr profile page with slug redirects"
@@ -831,6 +881,7 @@ git commit -m "feat(public): add isr profile page with slug redirects"
 ### Task 11: Pacote de SEO e `/explore`
 
 **Files:**
+
 - Create: `src/lib/seo.ts` + spec, `src/app/[slug]/opengraph-image.tsx`,
   `src/app/opengraph-image.tsx`, `src/app/sitemap.ts`, `src/app/robots.ts`,
   `src/app/explore/page.tsx`, `src/app/explore/page/[page]/page.tsx`,
@@ -839,6 +890,7 @@ git commit -m "feat(public): add isr profile page with slug redirects"
 - Modify: `src/app/[slug]/page.tsx` (usar `buildProfileMetadata`)
 
 **Interfaces:**
+
 - Consumes: `ProfileWithRelations`, `ProfileCard`, `TEMPLATES`, `env.NEXT_PUBLIC_APP_URL`
 - Produces: `buildProfileMetadata(profile): Metadata`,
   `buildPersonJsonLd(profile): Record<string, unknown>`, `buildProfileOgAlt(profile): string`,
@@ -847,14 +899,17 @@ git commit -m "feat(public): add isr profile page with slug redirects"
 - [ ] **Step 1: Testes unitários de SEO (falhando)**
 
 `seo.spec.ts`:
+
 ```ts
-it('should build the profile title', () => expect(buildProfileMetadata(p).title).toBe('Bruce Wayne — CEO & Filantropo | FolioCraft'))
-it('should truncate the description to 160 characters')
-it('should set the canonical url', () => expect(buildProfileMetadata(p).alternates?.canonical).toBe('https://foliocraft.app/bruce-wayne'))
-it('should include the profile og image url')
-it('should omit empty sameAs entries')
-it('should escape < in the json-ld payload')  // JSON.stringify(...).replace(/</g, '\\u003c'), bio '<script>'
-it('should include jobTitle and address in the json-ld')
+it("should build the profile title", () =>
+	expect(buildProfileMetadata(p).title).toBe("Bruce Wayne — CEO & Filantropo | FolioCraft"));
+it("should truncate the description to 160 characters");
+it("should set the canonical url", () =>
+	expect(buildProfileMetadata(p).alternates?.canonical).toBe("https://foliocraft.app/bruce-wayne"));
+it("should include the profile og image url");
+it("should omit empty sameAs entries");
+it("should escape < in the json-ld payload"); // JSON.stringify(...).replace(/</g, '\\u003c'), bio '<script>'
+it("should include jobTitle and address in the json-ld");
 ```
 
 - [ ] **Step 2: Implementar `seo.ts` e ligar ao metadata**
@@ -898,6 +953,7 @@ página fora do range → `notFound()`. Nada de `searchParams` (isso tornaria a 
 - [ ] **Step 6: Gate e commit**
 
 Run: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e tests/e2e/seo.spec.ts tests/e2e/explore.spec.ts`
+
 ```bash
 git add -A
 git commit -m "feat(seo): add metadata json-ld og images sitemap and explore"
@@ -908,12 +964,14 @@ git commit -m "feat(seo): add metadata json-ld og images sitemap and explore"
 ### Task 12: PDF real com Playwright
 
 **Files:**
+
 - Create: `src/lib/pdf.ts` + spec, `src/app/[slug]/print/page.tsx`,
   `src/app/api/pdf/[slug]/route.ts`, `tests/e2e/pdf.spec.ts`
 - Modify: `src/components/editor/sticky-action-bar.tsx`, `src/app/[slug]/page.tsx`,
   `src/app/globals.css` (`@media print`)
 
 **Interfaces:**
+
 - Consumes: `getPublicProfileBySlug`, `PortfolioPage`, `env.NEXT_PUBLIC_APP_URL`
 - Produces: `PdfRenderer`, `createPlaywrightRenderer()`, `renderProfilePdf(renderer, url)`,
   `PdfUnavailableError`, `renderPdfResponse(bytes, filename)`.
@@ -921,11 +979,18 @@ git commit -m "feat(seo): add metadata json-ld og images sitemap and explore"
 - [ ] **Step 1: Teste do contrato do PDF (falhando)**
 
 `pdf.spec.ts`:
+
 ```ts
-it('should return the bytes produced by the renderer')
-it('should reject with PdfUnavailableError when the renderer fails')
-it('should set the pdf headers', () => { const res = renderPdfResponse(bytes, 'bruce-wayne'); expect(res.headers.get('content-type')).toBe('application/pdf'); expect(res.headers.get('content-disposition')).toContain('attachment; filename="bruce-wayne.pdf"') })
-it('should return 503 when chromium is unavailable')
+it("should return the bytes produced by the renderer");
+it("should reject with PdfUnavailableError when the renderer fails");
+it("should set the pdf headers", () => {
+	const res = renderPdfResponse(bytes, "bruce-wayne");
+	expect(res.headers.get("content-type")).toBe("application/pdf");
+	expect(res.headers.get("content-disposition")).toContain(
+		'attachment; filename="bruce-wayne.pdf"',
+	);
+});
+it("should return 503 when chromium is unavailable");
 ```
 Run → FAIL.
 
@@ -965,6 +1030,7 @@ Run → passing.
 - [ ] **Step 6: Gate e commit**
 
 Run: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e tests/e2e/pdf.spec.ts`
+
 ```bash
 git add -A
 git commit -m "feat(pdf): render print route to a4 pdf with playwright"
@@ -975,6 +1041,7 @@ git commit -m "feat(pdf): render print route to a4 pdf with playwright"
 ### Task 13: Configurações da conta
 
 **Files:**
+
 - Create: `src/app/dashboard/settings/page.tsx`,
   `src/components/settings/{password-form,connected-accounts,delete-account-dialog}.tsx` + specs,
   `tests/e2e/settings.spec.ts`
@@ -982,6 +1049,7 @@ git commit -m "feat(pdf): render print route to a4 pdf with playwright"
   de `sendDeleteAccountVerification` — não: exclusão direta autenticada)
 
 **Interfaces:**
+
 - Consumes: `authClient.changePassword`, `authClient.listAccounts`, `authClient.unlinkAccount`,
   `authClient.signOut`, `auth` no servidor
 - Produces: página com troca de senha, conexão GitHub (vincular/desvincular) e exclusão de
@@ -1015,6 +1083,7 @@ Run → passing.
 - [ ] **Step 4: Gate e commit**
 
 Run: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e tests/e2e/settings.spec.ts`
+
 ```bash
 git add -A
 git commit -m "feat(settings): add password github and account deletion"
@@ -1025,12 +1094,14 @@ git commit -m "feat(settings): add password github and account deletion"
 ### Task 14: Seed Bruce Wayne, README e CI e2e
 
 **Files:**
+
 - Create: `scripts/seed.ts`, `README.md`
 - Modify: `.github/workflows/ci.yml` (job e2e), `docs/TESTING.md` (status final),
   `tests/e2e/helpers/db.ts` (adicionar helpers do seed), `package.json` (se o seed precisar
   de flag `--reset`)
 
 **Interfaces:**
+
 - Consumes: `db`, `auth` (hash via Better Auth), schema
 - Produces: seed idempotente com usuário demo `bruce@wayne.dev`, perfil publicado
   `/bruce-wayne` e rascunho `/clark-kent`; helper `createPublishedProfile(overrides)` para e2e
@@ -1068,6 +1139,7 @@ scripts, testes e CI, SEO checklist, decisões de escopo/non-goals, limitações
 - [ ] **Step 5: Gate e commit**
 
 Run: `pnpm lint && pnpm typecheck && pnpm test && pnpm test:e2e`
+
 ```bash
 git add -A
 git commit -m "chore: add demo seed readme and e2e ci job"
@@ -1078,11 +1150,13 @@ git commit -m "chore: add demo seed readme and e2e ci job"
 ### Task 15: Acessibilidade, QA final e fechamento
 
 **Files:**
+
 - Create: `tests/e2e/a11y.spec.ts`
 - Modify: `docs/TESTING.md`, `docs/TASKS.md` (marcar conclusão), `README.md` (seção
   "Verificação"), `package.json` (script `test:a11y` opcional)
 
 **Interfaces:**
+
 - Consumes: tudo
 - Produces: suíte de acessibilidade e checklist final verde.
 

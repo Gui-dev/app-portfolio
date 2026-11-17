@@ -7,11 +7,11 @@ A portable convention for unit-testing React components and hooks with Vitest, R
 ## Tech Stack
 
 - **Unit/Component framework:** Vitest (works with Jest — swap `vitest` imports for `jest`).
-- **Component rendering:** React Testing Library (`@testing-library/react`). *(installed since ticket 04)*
-- **User interactions:** `@testing-library/user-event` (preferred over `fireEvent`). *(not installed yet)*
-- **Network mocking:** MSW v2 (Mock Service Worker) — intercepts `fetch` at the network boundary. *(installed since ticket 04)*
-- **E2E framework:** Playwright (`@playwright/test`). *(installed since ticket 05)*
-- **Matchers:** `@testing-library/jest-dom` (DOM assertions like `toBeInTheDocument`). *(installed since ticket 04)*
+- **Component rendering:** React Testing Library (`@testing-library/react`). _(installed since ticket 04)_
+- **User interactions:** `@testing-library/user-event` (preferred over `fireEvent`). _(not installed yet)_
+- **Network mocking:** MSW v2 (Mock Service Worker) — intercepts `fetch` at the network boundary. _(installed since ticket 04)_
+- **E2E framework:** Playwright (`@playwright/test`). _(installed since ticket 05)_
+- **Matchers:** `@testing-library/jest-dom` (DOM assertions like `toBeInTheDocument`). _(installed since ticket 04)_
 
 ## Principles
 
@@ -56,64 +56,76 @@ tests/e2e/
 
 ## Naming Conventions
 
-| Item | Convention | Example |
-|---|---|---|
-| Component test file | `<component-name>.spec.tsx` co-located | `event-card.spec.tsx` |
-| Hook test file | `<hook-name>.spec.ts` co-located | `use-events.spec.ts` |
-| Lib test file | `<lib-name>.spec.ts` co-located | `api-client.spec.ts` |
-| E2E test file | `<feature>.spec.ts` in `tests/e2e/` | `browse-events.spec.ts` |
-| Component suite | `describe('<ComponentName />')` | `describe('<EventCard />')` |
-| Hook suite | `describe('<useHookName>')` | `describe('<useEvents>')` |
-| Test title | `it('should [observable behavior]')` | `it('should render the event name')` |
+| Item                | Convention                             | Example                              |
+| ------------------- | -------------------------------------- | ------------------------------------ |
+| Component test file | `<component-name>.spec.tsx` co-located | `event-card.spec.tsx`                |
+| Hook test file      | `<hook-name>.spec.ts` co-located       | `use-events.spec.ts`                 |
+| Lib test file       | `<lib-name>.spec.ts` co-located        | `api-client.spec.ts`                 |
+| E2E test file       | `<feature>.spec.ts` in `tests/e2e/`    | `browse-events.spec.ts`              |
+| Component suite     | `describe('<ComponentName />')`        | `describe('<EventCard />')`          |
+| Hook suite          | `describe('<useHookName>')`            | `describe('<useEvents>')`            |
+| Test title          | `it('should [observable behavior]')`   | `it('should render the event name')` |
 
 ## Writing Component Tests
 
 Standard pattern — render, interact, assert:
 
 ```tsx
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
-import { EventCard } from './event-card'
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { EventCard } from "./event-card";
 
-describe('<EventCard />', () => {
-	it('should render the event name and venue', () => {
+describe("<EventCard />", () => {
+	it("should render the event name and venue", () => {
 		render(
 			<EventCard
 				event={{
-					id: '1',
-					name: 'Show do Alpha',
-					venue: 'Auditório Beta',
-					startsAt: '2026-11-01T20:00:00-03:00',
+					id: "1",
+					name: "Show do Alpha",
+					venue: "Auditório Beta",
+					startsAt: "2026-11-01T20:00:00-03:00",
 					priceFrom: 120,
 				}}
 			/>,
-		)
+		);
 
-		expect(screen.getByText('Show do Alpha')).toBeInTheDocument()
-		expect(screen.getByText('Auditório Beta')).toBeInTheDocument()
-	})
+		expect(screen.getByText("Show do Alpha")).toBeInTheDocument();
+		expect(screen.getByText("Auditório Beta")).toBeInTheDocument();
+	});
 
-	it('should link to the event detail page', () => {
+	it("should link to the event detail page", () => {
 		render(
 			<EventCard
-				event={{ id: '1', name: 'Show do Alpha', venue: 'Auditório Beta', startsAt: '2026-11-01T20:00:00-03:00', priceFrom: 120 }}
+				event={{
+					id: "1",
+					name: "Show do Alpha",
+					venue: "Auditório Beta",
+					startsAt: "2026-11-01T20:00:00-03:00",
+					priceFrom: 120,
+				}}
 			/>,
-		)
+		);
 
-		const link = screen.getByRole('link', { name: /Show do Alpha/i })
-		expect(link).toHaveAttribute('href', '/event/1')
-	})
+		const link = screen.getByRole("link", { name: /Show do Alpha/i });
+		expect(link).toHaveAttribute("href", "/event/1");
+	});
 
-	it('should hide the price hint when there is no price yet', () => {
+	it("should hide the price hint when there is no price yet", () => {
 		render(
 			<EventCard
-				event={{ id: '1', name: 'Show do Alpha', venue: 'Auditório Beta', startsAt: '2026-11-01T20:00:00-03:00', priceFrom: null }}
+				event={{
+					id: "1",
+					name: "Show do Alpha",
+					venue: "Auditório Beta",
+					startsAt: "2026-11-01T20:00:00-03:00",
+					priceFrom: null,
+				}}
 			/>,
-		)
+		);
 
-		expect(screen.queryByText(/a partir de/i)).not.toBeInTheDocument()
-	})
-})
+		expect(screen.queryByText(/a partir de/i)).not.toBeInTheDocument();
+	});
+});
 ```
 
 Guidance:
@@ -122,21 +134,21 @@ Guidance:
 - **User interactions:** use `userEvent` (not `fireEvent`) for realistic behavior:
 
 ```tsx
-const user = userEvent.setup()
-await user.click(screen.getByRole('button', { name: 'Submit' }))
-await user.type(screen.getByLabelText('Name'), 'Show do Alpha')
+const user = userEvent.setup();
+await user.click(screen.getByRole("button", { name: "Submit" }));
+await user.type(screen.getByLabelText("Name"), "Show do Alpha");
 ```
 
 - **Async operations:** use `waitFor` or `screen.findBy*` (async query) — never fixed timeouts:
 
 ```tsx
 // Preferred — waits for the element to appear
-expect(await screen.findByText('Show do Alpha')).toBeInTheDocument()
+expect(await screen.findByText("Show do Alpha")).toBeInTheDocument();
 
 // Also valid — explicit wait
 await waitFor(() => {
-  expect(screen.getByText('Show do Alpha')).toBeInTheDocument()
-})
+	expect(screen.getByText("Show do Alpha")).toBeInTheDocument();
+});
 ```
 
 - **Mocking children:** only when a child is expensive or has side effects. Prefer rendering the real component.
@@ -146,29 +158,29 @@ await waitFor(() => {
 Use `renderHook` from `@testing-library/react`:
 
 ```tsx
-import { renderHook, waitFor } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
-import { useEvents } from './use-events'
+import { renderHook, waitFor } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { useEvents } from "./use-events";
 
-describe('<useEvents>', () => {
-	it('should return empty list initially', () => {
-		const { result } = renderHook(() => useEvents())
+describe("<useEvents>", () => {
+	it("should return empty list initially", () => {
+		const { result } = renderHook(() => useEvents());
 
-		expect(result.current.events).toEqual([])
-		expect(result.current.isLoading).toBe(true)
-	})
+		expect(result.current.events).toEqual([]);
+		expect(result.current.isLoading).toBe(true);
+	});
 
-	it('should fetch events on mount', async () => {
+	it("should fetch events on mount", async () => {
 		// MSW handler returns mock data — see MSW section below
-		const { result } = renderHook(() => useEvents())
+		const { result } = renderHook(() => useEvents());
 
 		await waitFor(() => {
-			expect(result.current.isLoading).toBe(false)
-		})
+			expect(result.current.isLoading).toBe(false);
+		});
 
-		expect(result.current.events).toHaveLength(2)
-	})
-})
+		expect(result.current.events).toHaveLength(2);
+	});
+});
 ```
 
 ## Mocking with MSW v2
@@ -188,27 +200,45 @@ Define handlers per feature (or a shared file for global handlers):
 
 ```ts
 // src/mocks/handlers/events.ts
-import { http, HttpResponse } from 'msw'
+import { http, HttpResponse } from "msw";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 export const eventsHandlers = [
 	http.get(`${API_URL}/events`, () => {
 		return HttpResponse.json([
-			{ id: '1', name: 'Show do Alpha', venue: 'Auditório Beta', startsAt: '2026-11-01T20:00:00-03:00', priceFrom: 120 },
-			{ id: '2', name: 'Peça Gama', venue: 'Teatro Delta', startsAt: '2026-12-05T19:30:00-03:00', priceFrom: 90 },
-		])
+			{
+				id: "1",
+				name: "Show do Alpha",
+				venue: "Auditório Beta",
+				startsAt: "2026-11-01T20:00:00-03:00",
+				priceFrom: 120,
+			},
+			{
+				id: "2",
+				name: "Peça Gama",
+				venue: "Teatro Delta",
+				startsAt: "2026-12-05T19:30:00-03:00",
+				priceFrom: 90,
+			},
+		]);
 	}),
 
 	http.get(`${API_URL}/events/:id`, ({ params }) => {
-		const event = { id: params.id, name: 'Show do Alpha', venue: 'Auditório Beta', startsAt: '2026-11-01T20:00:00-03:00', priceFrom: 120 }
-		return HttpResponse.json(event)
+		const event = {
+			id: params.id,
+			name: "Show do Alpha",
+			venue: "Auditório Beta",
+			startsAt: "2026-11-01T20:00:00-03:00",
+			priceFrom: 120,
+		};
+		return HttpResponse.json(event);
 	}),
 
 	http.get(`${API_URL}/events/:id/availability`, ({ params }) => {
-		return HttpResponse.json({ eventId: params.id, seats: [] })
+		return HttpResponse.json({ eventId: params.id, seats: [] });
 	}),
-]
+];
 ```
 
 Handlers will validate payloads against the Zod schemas in `packages/shared` once those event schemas exist (contract seam — see `docs/TESTING.md`).
@@ -217,50 +247,56 @@ Handlers will validate payloads against the Zod schemas in `packages/shared` onc
 
 ```ts
 // src/components/event-grid.spec.tsx
-import { http, HttpResponse } from 'msw'
-import { setupServer } from 'msw/node'
-import { afterAll, afterEach, beforeAll } from 'vitest'
+import { http, HttpResponse } from "msw";
+import { setupServer } from "msw/node";
+import { afterAll, afterEach, beforeAll } from "vitest";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:3001'
+const API_URL = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:3001";
 
 const server = setupServer(
 	http.get(`${API_URL}/events`, () => {
 		return HttpResponse.json([
-			{ id: '1', name: 'Show do Alpha', venue: 'Auditório Beta', startsAt: '2026-11-01T20:00:00-03:00', priceFrom: 120 },
-		])
+			{
+				id: "1",
+				name: "Show do Alpha",
+				venue: "Auditório Beta",
+				startsAt: "2026-11-01T20:00:00-03:00",
+				priceFrom: 120,
+			},
+		]);
 	}),
-)
+);
 
-beforeAll(() => server.listen({ onUnhandledRequest: 'bypass' }))
-afterEach(() => server.resetHandlers())
-afterAll(() => server.close())
+beforeAll(() => server.listen({ onUnhandledRequest: "bypass" }));
+afterEach(() => server.resetHandlers());
+afterAll(() => server.close());
 ```
 
 Key MSW v2 API:
 
-| v2 API | Purpose |
-|---|---|
-| `http.get(url, resolver)` | Intercept GET requests |
-| `http.post(url, resolver)` | Intercept POST requests |
-| `HttpResponse.json(data, init)` | Return JSON response |
-| `request.json()` | Parse request body |
-| `server.use(handler)` | Override handler per test (error responses, edge cases) |
-| `server.resetHandlers()` | Restore original handlers after each test |
+| v2 API                          | Purpose                                                 |
+| ------------------------------- | ------------------------------------------------------- |
+| `http.get(url, resolver)`       | Intercept GET requests                                  |
+| `http.post(url, resolver)`      | Intercept POST requests                                 |
+| `HttpResponse.json(data, init)` | Return JSON response                                    |
+| `request.json()`                | Parse request body                                      |
+| `server.use(handler)`           | Override handler per test (error responses, edge cases) |
+| `server.resetHandlers()`        | Restore original handlers after each test               |
 
 ### Testing error states
 
 ```tsx
-it('should show an error message when the API fails', async () => {
+it("should show an error message when the API fails", async () => {
 	server.use(
 		http.get(`${API_URL}/events`, () => {
-			return HttpResponse.json({ error: 'INTERNAL_ERROR' }, { status: 500 })
+			return HttpResponse.json({ error: "INTERNAL_ERROR" }, { status: 500 });
 		}),
-	)
+	);
 
-	render(<EventGrid />)
+	render(<EventGrid />);
 
-	expect(await screen.findByText('Não foi possível carregar os eventos')).toBeInTheDocument()
-})
+	expect(await screen.findByText("Não foi possível carregar os eventos")).toBeInTheDocument();
+});
 ```
 
 ## Accessibility Assertions
@@ -269,26 +305,26 @@ Always prefer accessible queries and assertions:
 
 ```tsx
 // Good — queries by role (accessible)
-screen.getByRole('button', { name: 'Submit' })
-screen.getByRole('heading', { name: 'Eventos' })
-screen.getByRole('link', { name: /Alpha/ })
+screen.getByRole("button", { name: "Submit" });
+screen.getByRole("heading", { name: "Eventos" });
+screen.getByRole("link", { name: /Alpha/ });
 
 // Good — queries by label (accessible)
-screen.getByLabelText('Name')
+screen.getByLabelText("Name");
 
 // Acceptable — queries by text
-screen.getByText('Nenhum evento encontrado')
+screen.getByText("Nenhum evento encontrado");
 
 // Last resort — testId (not accessible, avoid)
-screen.getByTestId('event-card')
+screen.getByTestId("event-card");
 ```
 
 Assert ARIA attributes and roles:
 
 ```tsx
-expect(screen.getByRole('button', { name: 'Submit' })).toBeEnabled()
-expect(screen.getByRole('button', { name: 'Submit' })).toBeDisabled()
-expect(screen.getByRole('alert')).toHaveTextContent('Error occurred')
+expect(screen.getByRole("button", { name: "Submit" })).toBeEnabled();
+expect(screen.getByRole("button", { name: "Submit" })).toBeDisabled();
+expect(screen.getByRole("alert")).toHaveTextContent("Error occurred");
 ```
 
 ## Recommended Case Checklist
@@ -334,30 +370,30 @@ expect(screen.getByRole('alert')).toHaveTextContent('Error occurred')
 
 ```ts
 // playwright.config.ts
-import { defineConfig } from '@playwright/test'
+import { defineConfig } from "@playwright/test";
 
 export default defineConfig({
-	testDir: './tests/e2e',
+	testDir: "./tests/e2e",
 	timeout: 60_000,
 	forbidOnly: true,
 	retries: process.env.CI ? 1 : 0,
-	use: { baseURL: 'http://localhost:3000', trace: 'retain-on-failure' },
-})
+	use: { baseURL: "http://localhost:3000", trace: "retain-on-failure" },
+});
 ```
 
 ### Writing E2E Tests
 
 ```ts
-import { expect, test } from '@playwright/test'
+import { expect, test } from "@playwright/test";
 
-test('buyer can open an event page from the home', async ({ page }) => {
-	await page.goto('/')
+test("buyer can open an event page from the home", async ({ page }) => {
+	await page.goto("/");
 
-	await page.getByRole('link', { name: /Show do Alpha/i }).click()
+	await page.getByRole("link", { name: /Show do Alpha/i }).click();
 
-	await expect(page).toHaveURL(/\/event\//)
-	await expect(page.getByRole('heading', { name: 'Show do Alpha' })).toBeVisible()
-})
+	await expect(page).toHaveURL(/\/event\//);
+	await expect(page.getByRole("heading", { name: "Show do Alpha" })).toBeVisible();
+});
 ```
 
 ### E2E Best Practices
@@ -411,58 +447,67 @@ There is no `test:watch` or `test:coverage` script in this repository — do not
 Component (`components/event-card.tsx`):
 
 ```tsx
-import Link from 'next/link'
+import Link from "next/link";
 
 interface Event {
-	id: string
-	name: string
-	venue: string
-	startsAt: string
-	priceFrom: number | null
+	id: string;
+	name: string;
+	venue: string;
+	startsAt: string;
+	priceFrom: number | null;
 }
 
 export function EventCard({ event }: { event: Event }) {
 	return (
-		<Link
-			href={`/event/${event.id}`}
-			className="block rounded-lg border p-4 hover:bg-muted"
-		>
+		<Link href={`/event/${event.id}`} className="block rounded-lg border p-4 hover:bg-muted">
 			<h3 className="font-medium">{event.name}</h3>
 			<p className="mt-1 text-sm text-muted-foreground">{event.venue}</p>
 			{event.priceFrom !== null ? (
 				<p className="mt-1 text-sm">A partir de R$ {event.priceFrom}</p>
 			) : null}
 		</Link>
-	)
+	);
 }
 ```
 
 Test (`components/event-card.spec.tsx` — co-located):
 
 ```tsx
-import { render, screen } from '@testing-library/react'
-import { describe, expect, it } from 'vitest'
-import { EventCard } from './event-card'
+import { render, screen } from "@testing-library/react";
+import { describe, expect, it } from "vitest";
+import { EventCard } from "./event-card";
 
-describe('<EventCard />', () => {
-	it('should render the event name', () => {
+describe("<EventCard />", () => {
+	it("should render the event name", () => {
 		render(
 			<EventCard
-				event={{ id: '1', name: 'Show do Alpha', venue: 'Auditório Beta', startsAt: '2026-11-01T20:00:00-03:00', priceFrom: 120 }}
+				event={{
+					id: "1",
+					name: "Show do Alpha",
+					venue: "Auditório Beta",
+					startsAt: "2026-11-01T20:00:00-03:00",
+					priceFrom: 120,
+				}}
 			/>,
-		)
-		expect(screen.getByText('Show do Alpha')).toBeInTheDocument()
-	})
+		);
+		expect(screen.getByText("Show do Alpha")).toBeInTheDocument();
+	});
 
-	it('should link to the event detail page', () => {
+	it("should link to the event detail page", () => {
 		render(
 			<EventCard
-				event={{ id: '1', name: 'Show do Alpha', venue: 'Auditório Beta', startsAt: '2026-11-01T20:00:00-03:00', priceFrom: 120 }}
+				event={{
+					id: "1",
+					name: "Show do Alpha",
+					venue: "Auditório Beta",
+					startsAt: "2026-11-01T20:00:00-03:00",
+					priceFrom: 120,
+				}}
 			/>,
-		)
-		expect(screen.getByRole('link', { name: /Show do Alpha/ })).toHaveAttribute('href', '/event/1')
-	})
-})
+		);
+		expect(screen.getByRole("link", { name: /Show do Alpha/ })).toHaveAttribute("href", "/event/1");
+	});
+});
 ```
 
 ## Project Overrides — TICKETVIBE
