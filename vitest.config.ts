@@ -1,7 +1,11 @@
+import { fileURLToPath } from "node:url";
 import react from "@vitejs/plugin-react";
 import { defineConfig } from "vitest/config";
 
 export default defineConfig({
+	resolve: {
+		alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
+	},
 	test: {
 		// Vitest 5 only allows passWithNoTests at the root level; it is here so
 		// the integration project (empty until the database task lands) is

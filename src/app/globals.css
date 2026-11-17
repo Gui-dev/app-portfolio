@@ -1,14 +1,42 @@
 @import "tailwindcss";
 
-/* Design tokens — the only place where raw color values may appear. */
+/*
+ * Design tokens — Figma "Folio craft", Modern dark palette.
+ * Raw color values appear only in this token block (R10).
+ */
 @theme {
-	--color-background: #ffffff;
-	--color-foreground: #111827;
-	--font-sans: ui-sans-serif, system-ui, sans-serif;
+	--color-bg: var(--bg);
+	--color-surface: var(--surface);
+	--color-border: var(--border);
+	--color-fg: var(--fg);
+	--color-muted: var(--muted);
+	--color-accent: var(--accent);
+	--color-accent-violet: var(--accent-violet);
+	--color-accent-2: var(--accent-2);
+
+	--font-display: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
+	--font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+	--font-mono: var(--font-jetbrains-mono), ui-monospace, sfmono-regular, monospace;
+	--font-serif: var(--font-fraunces), ui-serif, Georgia, serif;
+}
+
+:root {
+	color-scheme: dark;
+
+	--bg: #0b0f19;
+	--surface: #111827;
+	--border: #1e293b;
+	--fg: #f1f5f9;
+	--muted: #94a3b8;
+	--accent: #6366f1;
+	--accent-violet: #7c3aed;
+	--accent-2: #22d3ee;
 }
 
 body {
-	background-color: var(--color-background);
-	color: var(--color-foreground);
+	min-height: 100vh;
+	background-color: var(--bg);
+	color: var(--fg);
 	font-family: var(--font-sans);
+	-webkit-font-smoothing: antialiased;
 }
