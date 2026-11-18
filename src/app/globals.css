@@ -13,6 +13,8 @@
 	--color-accent: var(--accent);
 	--color-accent-violet: var(--accent-violet);
 	--color-accent-2: var(--accent-2);
+	--color-accent-soft: var(--accent-soft);
+	--color-success: var(--success);
 
 	--font-display: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
 	--font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -31,6 +33,8 @@
 	--accent: #6366f1;
 	--accent-violet: #7c3aed;
 	--accent-2: #22d3ee;
+	--accent-soft: #818cf8;
+	--success: #10b981;
 }
 
 body {
