@@ -8,6 +8,7 @@
 	--color-bg: var(--bg);
 	--color-surface: var(--surface);
 	--color-border: var(--border);
+	--color-surface-2: var(--surface-2);
 	--color-fg: var(--fg);
 	--color-muted: var(--muted);
 	--color-accent: var(--accent);
@@ -27,6 +28,7 @@
 
 	--bg: #0b0f19;
 	--surface: #111827;
+	--surface-2: #0e1322;
 	--border: #1e293b;
 	--fg: #f1f5f9;
 	--muted: #94a3b8;
