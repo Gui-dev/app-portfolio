@@ -33,7 +33,7 @@ Fase atual, **antes da Task 3**. Cada linha é uma task de um componente: o cód
 
 | #     | Componente                                | Ref. Figma       | Implementada | Gate                                       | Status |
 | ----- | ----------------------------------------- | ---------------- | ------------ | ------------------------------------------ | ------ |
-| UI-1  | Header + scaffold `/dashboard`            | `1:180`          | Não          | `pnpm lint && pnpm typecheck && pnpm test` | [ ]    |
+| UI-1  | Header + scaffold `/dashboard`            | `1:180`          | Sim          | `pnpm lint && pnpm typecheck && pnpm test` | [x]    |
 | UI-2  | Menu de abas                              | `1:205`          | Não          | idem                                       | [ ]    |
 | UI-3  | Área de conteúdo + troca de aba           | `1:226`          | Não          | idem                                       | [ ]    |
 | UI-4  | Barra de ações fixa                       | `1:305`          | Não          | idem                                       | [ ]    |
