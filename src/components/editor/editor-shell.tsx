@@ -1,8 +1,10 @@
 "use client";
 
+import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { type ReactElement, useState } from "react";
 import { EditorHeader } from "./editor-header";
-import { type EditorTabId, TabNav } from "./tab-nav";
+import { EDITOR_TABS, type EditorTabId, TabNav } from "./tab-nav";
+import { TabPanel } from "./tab-panel";
 
 export function EditorShell({ publicSlug }: { publicSlug: string }): ReactElement {
 	const [activeTab, setActiveTab] = useState<EditorTabId>("profile");
@@ -10,8 +12,23 @@ export function EditorShell({ publicSlug }: { publicSlug: string }): ReactElemen
 	return (
 		<>
 			<EditorHeader publicSlug={publicSlug} />
-			<TabNav onValueChange={setActiveTab} value={activeTab} />
-			<main aria-label="Área do editor" className="flex-1" />
+			<TabsPrimitive.Root
+				className="flex min-h-0 w-full flex-1 flex-col"
+				onValueChange={(next) => setActiveTab(next as EditorTabId)}
+				value={activeTab}
+			>
+				<TabNav />
+				{EDITOR_TABS.map((tab) => (
+					<TabPanel key={tab.id} value={tab.id}>
+						<section className="flex flex-col gap-1">
+							<h2 className="font-display text-base font-bold leading-6 text-fg">{tab.label}</h2>
+							<p className="text-xs leading-4 text-muted">
+								O formulário desta seção será construído nas próximas etapas.
+							</p>
+						</section>
+					</TabPanel>
+				))}
+			</TabsPrimitive.Root>
 		</>
 	);
 }

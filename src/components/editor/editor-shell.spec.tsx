@@ -9,19 +9,51 @@ describe("EditorShell", () => {
 
 		expect(screen.getByText("FolioCraft")).toBeInTheDocument();
 		expect(container).toHaveTextContent("foliocraft.app/lucas-almeida");
-		expect(screen.getByRole("tab", { name: "Perfil" })).toBeInTheDocument();
-		expect(screen.getByRole("main", { name: "Área do editor" })).toBeInTheDocument();
+		expect(screen.getByRole("navigation", { name: "Seções do editor" })).toBeInTheDocument();
+		expect(screen.getByRole("tablist", { name: "Seções do editor" })).toBeInTheDocument();
+		expect(screen.getAllByRole("tab")).toHaveLength(5);
 	});
 
-	it("should select the clicked tab", async () => {
+	it("should show only the active tab panel", () => {
+		render(<EditorShell publicSlug="lucas-almeida" />);
+
+		expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
+		expect(screen.getByRole("heading", { name: "Perfil" })).toBeVisible();
+		for (const label of ["Experiência", "Projetos", "Skills", "Aparência"]) {
+			expect(screen.queryByRole("heading", { name: label })).not.toBeInTheDocument();
+		}
+	});
+
+	it("should switch the panel when another tab is clicked", async () => {
 		const user = userEvent.setup();
 		render(<EditorShell publicSlug="lucas-almeida" />);
 
-		expect(screen.getByRole("tab", { name: "Perfil" })).toHaveAttribute("aria-selected", "true");
+		await user.click(screen.getByRole("tab", { name: "Experiência" }));
 
-		await user.click(screen.getByRole("tab", { name: "Aparência" }));
-
-		expect(screen.getByRole("tab", { name: "Aparência" })).toHaveAttribute("aria-selected", "true");
+		expect(screen.getByRole("tab", { name: "Experiência" })).toHaveAttribute(
+			"aria-selected",
+			"true",
+		);
 		expect(screen.getByRole("tab", { name: "Perfil" })).toHaveAttribute("aria-selected", "false");
+		expect(screen.getByRole("tabpanel")).toHaveTextContent("Experiência");
+		expect(screen.getByRole("heading", { name: "Experiência" })).toBeVisible();
+		expect(screen.queryByRole("heading", { name: "Perfil" })).not.toBeInTheDocument();
+	});
+
+	it("should keep keyboard selection and panel in sync", async () => {
+		const user = userEvent.setup();
+		render(<EditorShell publicSlug="lucas-almeida" />);
+
+		screen.getByRole("tab", { name: "Perfil" }).focus();
+		await user.keyboard("{ArrowRight}");
+
+		expect(screen.getByRole("tab", { name: "Experiência" })).toHaveAttribute(
+			"aria-selected",
+			"true",
+		);
+		expect(screen.getByRole("tab", { name: "Perfil" })).toHaveAttribute("aria-selected", "false");
+		expect(screen.getByRole("tabpanel")).toHaveTextContent("Experiência");
+		expect(screen.getByRole("heading", { name: "Experiência" })).toBeVisible();
+		expect(screen.queryByRole("heading", { name: "Perfil" })).not.toBeInTheDocument();
 	});
 });

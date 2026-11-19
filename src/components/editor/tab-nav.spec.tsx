@@ -1,3 +1,4 @@
+import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { useState } from "react";
@@ -6,15 +7,27 @@ import { type EditorTabId, TabNav } from "./tab-nav";
 
 const labels = ["Perfil", "Experiência", "Projetos", "Skills", "Aparência"] as const;
 
+function renderTabNav(value: EditorTabId, onValueChange = vi.fn()) {
+	return render(
+		<TabsPrimitive.Root onValueChange={onValueChange} value={value}>
+			<TabNav />
+		</TabsPrimitive.Root>,
+	);
+}
+
 function ControlledTabNav() {
 	const [value, setValue] = useState<EditorTabId>("profile");
 
-	return <TabNav value={value} onValueChange={setValue} />;
+	return (
+		<TabsPrimitive.Root onValueChange={(next) => setValue(next as EditorTabId)} value={value}>
+			<TabNav />
+		</TabsPrimitive.Root>
+	);
 }
 
 describe("TabNav", () => {
 	it("should render all five tabs in order with the expected labels", () => {
-		render(<TabNav value="profile" onValueChange={vi.fn()} />);
+		renderTabNav("profile");
 
 		expect(screen.getByRole("navigation", { name: "Seções do editor" })).toBeInTheDocument();
 		expect(screen.getByRole("tablist", { name: "Seções do editor" })).toBeInTheDocument();
@@ -22,7 +35,7 @@ describe("TabNav", () => {
 	});
 
 	it("should mark only the active tab as selected", () => {
-		render(<TabNav value="experience" onValueChange={vi.fn()} />);
+		renderTabNav("experience");
 
 		for (const label of labels) {
 			expect(screen.getByRole("tab", { name: label })).toHaveAttribute(
@@ -35,7 +48,7 @@ describe("TabNav", () => {
 	it("should call onValueChange with the tab id when another tab is clicked", async () => {
 		const user = userEvent.setup();
 		const onValueChange = vi.fn();
-		render(<TabNav value="profile" onValueChange={onValueChange} />);
+		renderTabNav("profile", onValueChange);
 
 		await user.click(screen.getByRole("tab", { name: "Projetos" }));
 
