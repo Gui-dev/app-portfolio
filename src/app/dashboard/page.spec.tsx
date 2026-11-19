@@ -8,4 +8,11 @@ describe("Dashboard page", () => {
 
 		expect(screen.getByText("FolioCraft")).toBeInTheDocument();
 	});
+
+	it("should render the preview panel", () => {
+		render(<DashboardPage />);
+
+		expect(screen.getByRole("complementary", { name: "Prévia do portfólio" })).toBeInTheDocument();
+		expect(screen.getByText("Prévia ao vivo")).toBeInTheDocument();
+	});
 });

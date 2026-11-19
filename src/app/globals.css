@@ -20,6 +20,13 @@
 	--color-accent-soft: var(--accent-soft);
 	--color-success: var(--success);
 	--color-danger: var(--danger);
+	--color-canvas: var(--canvas);
+	--color-surface-3: var(--surface-3);
+	--color-inset: var(--inset);
+	--color-fg-dim: var(--fg-dim);
+	--color-danger-soft: var(--danger-soft);
+	--color-warning: var(--warning);
+	--color-success-soft: var(--success-soft);
 
 	--font-display: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
 	--font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -45,6 +52,13 @@
 	--accent-soft: #818cf8;
 	--success: #10b981;
 	--danger: #f43f5e;
+	--canvas: #070a12;
+	--surface-3: #131b2e;
+	--inset: #0f172a;
+	--fg-dim: #cbd5e1;
+	--danger-soft: #fb7185;
+	--warning: #fbbf24;
+	--success-soft: #34d399;
 }
 
 body {
