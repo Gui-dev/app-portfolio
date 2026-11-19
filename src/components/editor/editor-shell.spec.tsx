@@ -14,6 +14,13 @@ describe("EditorShell", () => {
 		expect(screen.getAllByRole("tab")).toHaveLength(5);
 	});
 
+	it("should render the action bar with the publish button", () => {
+		render(<EditorShell publicSlug="lucas-almeida" />);
+
+		expect(screen.getByRole("contentinfo")).toBeInTheDocument();
+		expect(screen.getByRole("button", { name: "Salvar e Publicar" })).toBeInTheDocument();
+	});
+
 	it("should show only the active tab panel", () => {
 		render(<EditorShell publicSlug="lucas-almeida" />);
 

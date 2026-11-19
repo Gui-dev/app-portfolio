@@ -2,6 +2,7 @@
 
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { type ReactElement, useState } from "react";
+import { EditorActionBar } from "./editor-action-bar";
 import { EditorHeader } from "./editor-header";
 import { EDITOR_TABS, type EditorTabId, TabNav } from "./tab-nav";
 import { TabPanel } from "./tab-panel";
@@ -29,6 +30,7 @@ export function EditorShell({ publicSlug }: { publicSlug: string }): ReactElemen
 					</TabPanel>
 				))}
 			</TabsPrimitive.Root>
+			<EditorActionBar />
 		</>
 	);
 }
