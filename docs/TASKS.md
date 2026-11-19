@@ -36,7 +36,7 @@ Fase atual, **antes da Task 3**. Cada linha é uma task de um componente: o cód
 | UI-1  | Header + scaffold `/dashboard`            | `1:180`          | Sim          | `pnpm lint && pnpm typecheck && pnpm test` | [x]    |
 | UI-2  | Menu de abas                              | `1:205`          | Sim          | idem                                       | [x]    |
 | UI-3  | Área de conteúdo + troca de aba           | `1:226`          | Sim          | idem                                       | [x]    |
-| UI-4  | Barra de ações fixa                       | `1:305`          | Não          | idem                                       | [ ]    |
+| UI-4  | Barra de ações fixa                       | `1:305`          | Sim          | idem                                       | [x]    |
 | UI-5  | Painel de preview (toolbar + browser)     | `1:320`, `1:337` | Não          | idem                                       | [ ]    |
 | UI-6  | Aba Perfil                                | `1:227`          | Não          | idem                                       | [ ]    |
 | UI-7  | Aba Experiência + helper primeiro emprego | `8:873`, `8:890` | Não          | idem                                       | [ ]    |
