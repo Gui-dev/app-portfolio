@@ -49,6 +49,16 @@ describe("EditorShell", () => {
 		expect(screen.getAllByLabelText("Cargo ou Papel Exercido")).toHaveLength(2);
 	});
 
+	it("should render the projects form in the Projetos tab", async () => {
+		const user = userEvent.setup();
+		render(<EditorShell publicSlug="lucas-almeida" />);
+
+		await user.click(screen.getByRole("tab", { name: "Projetos" }));
+
+		expect(screen.getByRole("heading", { name: "Projetos em Destaque" })).toBeInTheDocument();
+		expect(screen.getAllByLabelText("Nome do Projeto")).toHaveLength(2);
+	});
+
 	it("should switch the panel when another tab is clicked", async () => {
 		const user = userEvent.setup();
 		render(<EditorShell publicSlug="lucas-almeida" />);
