@@ -21,11 +21,17 @@ describe("EditorShell", () => {
 		expect(screen.getByRole("button", { name: "Salvar e Publicar" })).toBeInTheDocument();
 	});
 
+	it("should render the profile form in the Perfil tab", () => {
+		render(<EditorShell publicSlug="lucas-almeida" />);
+
+		expect(screen.getByLabelText("Nome Completo")).toBeInTheDocument();
+	});
+
 	it("should show only the active tab panel", () => {
 		render(<EditorShell publicSlug="lucas-almeida" />);
 
 		expect(screen.getAllByRole("tabpanel")).toHaveLength(1);
-		expect(screen.getByRole("heading", { name: "Perfil" })).toBeVisible();
+		expect(screen.getByLabelText("Nome Completo")).toBeVisible();
 		for (const label of ["Experiência", "Projetos", "Skills", "Aparência"]) {
 			expect(screen.queryByRole("heading", { name: label })).not.toBeInTheDocument();
 		}
@@ -44,7 +50,7 @@ describe("EditorShell", () => {
 		expect(screen.getByRole("tab", { name: "Perfil" })).toHaveAttribute("aria-selected", "false");
 		expect(screen.getByRole("tabpanel")).toHaveTextContent("Experiência");
 		expect(screen.getByRole("heading", { name: "Experiência" })).toBeVisible();
-		expect(screen.queryByRole("heading", { name: "Perfil" })).not.toBeInTheDocument();
+		expect(screen.queryByLabelText("Nome Completo")).not.toBeInTheDocument();
 	});
 
 	it("should keep keyboard selection and panel in sync", async () => {
@@ -61,6 +67,6 @@ describe("EditorShell", () => {
 		expect(screen.getByRole("tab", { name: "Perfil" })).toHaveAttribute("aria-selected", "false");
 		expect(screen.getByRole("tabpanel")).toHaveTextContent("Experiência");
 		expect(screen.getByRole("heading", { name: "Experiência" })).toBeVisible();
-		expect(screen.queryByRole("heading", { name: "Perfil" })).not.toBeInTheDocument();
+		expect(screen.queryByLabelText("Nome Completo")).not.toBeInTheDocument();
 	});
 });

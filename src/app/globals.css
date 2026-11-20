@@ -27,6 +27,9 @@
 	--color-danger-soft: var(--danger-soft);
 	--color-warning: var(--warning);
 	--color-success-soft: var(--success-soft);
+	--color-accent-cyan: var(--accent-cyan);
+	--color-accent-emerald: var(--accent-emerald);
+	--color-accent-teal: var(--accent-teal);
 
 	--font-display: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
 	--font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -59,6 +62,9 @@
 	--danger-soft: #fb7185;
 	--warning: #fbbf24;
 	--success-soft: #34d399;
+	--accent-cyan: #06b6d4;
+	--accent-emerald: #059669;
+	--accent-teal: #2dd4bf;
 }
 
 body {
