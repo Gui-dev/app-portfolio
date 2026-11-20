@@ -257,7 +257,7 @@ export function ExperienceTab(): ReactElement {
 	};
 
 	return (
-		<div className="flex w-full max-w-[743px] flex-col gap-5">
+		<div className="flex w-full flex-col gap-5">
 			<header className="flex flex-wrap items-center justify-between gap-3">
 				<div className="flex flex-col">
 					<h2 className="font-display text-base font-bold leading-6 text-fg">
