@@ -30,6 +30,10 @@
 	--color-accent-cyan: var(--accent-cyan);
 	--color-accent-emerald: var(--accent-emerald);
 	--color-accent-teal: var(--accent-teal);
+	--color-fg-subtle: var(--fg-subtle);
+	--color-accent-sky: var(--accent-sky);
+	--color-accent-deep: var(--accent-deep);
+	--color-accent-pale: var(--accent-pale);
 
 	--font-display: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
 	--font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -65,6 +69,10 @@
 	--accent-cyan: #06b6d4;
 	--accent-emerald: #059669;
 	--accent-teal: #2dd4bf;
+	--fg-subtle: #64748b;
+	--accent-sky: #0ea5e9;
+	--accent-deep: #4338ca;
+	--accent-pale: #a5b4fc;
 }
 
 body {

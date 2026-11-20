@@ -37,6 +37,18 @@ describe("EditorShell", () => {
 		}
 	});
 
+	it("should render the experience form in the Experiência tab", async () => {
+		const user = userEvent.setup();
+		render(<EditorShell publicSlug="lucas-almeida" />);
+
+		await user.click(screen.getByRole("tab", { name: "Experiência" }));
+
+		expect(
+			screen.getByRole("heading", { name: "Experiência & Vivência Prática" }),
+		).toBeInTheDocument();
+		expect(screen.getAllByLabelText("Cargo ou Papel Exercido")).toHaveLength(2);
+	});
+
 	it("should switch the panel when another tab is clicked", async () => {
 		const user = userEvent.setup();
 		render(<EditorShell publicSlug="lucas-almeida" />);
@@ -48,8 +60,8 @@ describe("EditorShell", () => {
 			"true",
 		);
 		expect(screen.getByRole("tab", { name: "Perfil" })).toHaveAttribute("aria-selected", "false");
-		expect(screen.getByRole("tabpanel")).toHaveTextContent("Experiência");
-		expect(screen.getByRole("heading", { name: "Experiência" })).toBeVisible();
+		expect(screen.getByRole("tabpanel")).toHaveTextContent("Experiência & Vivência Prática");
+		expect(screen.getByRole("heading", { name: "Experiência & Vivência Prática" })).toBeVisible();
 		expect(screen.queryByLabelText("Nome Completo")).not.toBeInTheDocument();
 	});
 
@@ -65,8 +77,8 @@ describe("EditorShell", () => {
 			"true",
 		);
 		expect(screen.getByRole("tab", { name: "Perfil" })).toHaveAttribute("aria-selected", "false");
-		expect(screen.getByRole("tabpanel")).toHaveTextContent("Experiência");
-		expect(screen.getByRole("heading", { name: "Experiência" })).toBeVisible();
+		expect(screen.getByRole("tabpanel")).toHaveTextContent("Experiência & Vivência Prática");
+		expect(screen.getByRole("heading", { name: "Experiência & Vivência Prática" })).toBeVisible();
 		expect(screen.queryByLabelText("Nome Completo")).not.toBeInTheDocument();
 	});
 });
