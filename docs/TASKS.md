@@ -40,7 +40,7 @@ Fase atual, **antes da Task 3**. Cada linha é uma task de um componente: o cód
 | UI-5  | Painel de preview (toolbar + browser)     | `1:320`, `1:337` | Sim          | idem                                       | [x]    |
 | UI-6  | Aba Perfil                                | `1:227`          | Sim          | idem                                       | [x]    |
 | UI-7  | Aba Experiência + helper primeiro emprego | `8:873`, `8:890` | Sim          | idem                                       | [x]    |
-| UI-8  | Aba Projetos                              | `8:555`          | Não          | idem                                       | [ ]    |
+| UI-8  | Aba Projetos                              | `8:555`          | Sim          | idem                                       | [x]    |
 | UI-9  | Aba Skills                                | `7:296`          | Não          | idem                                       | [ ]    |
 | UI-10 | Aba Aparência                             | `8:1166`         | Não          | idem                                       | [ ]    |
 
