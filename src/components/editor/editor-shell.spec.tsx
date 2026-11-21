@@ -59,6 +59,16 @@ describe("EditorShell", () => {
 		expect(screen.getAllByLabelText("Nome do Projeto")).toHaveLength(2);
 	});
 
+	it("should render the skills form in the Skills tab", async () => {
+		const user = userEvent.setup();
+		render(<EditorShell publicSlug="lucas-almeida" />);
+
+		await user.click(screen.getByRole("tab", { name: "Skills" }));
+
+		expect(screen.getByRole("heading", { name: "Stack & Habilidades" })).toBeInTheDocument();
+		expect(screen.getByLabelText("Nova habilidade")).toBeInTheDocument();
+	});
+
 	it("should switch the panel when another tab is clicked", async () => {
 		const user = userEvent.setup();
 		render(<EditorShell publicSlug="lucas-almeida" />);

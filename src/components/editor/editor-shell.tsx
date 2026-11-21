@@ -7,6 +7,7 @@ import { EditorHeader } from "./editor-header";
 import { ExperienceTab } from "./experience-tab";
 import { ProfileTab } from "./profile-tab";
 import { ProjectsTab } from "./projects-tab";
+import { SkillsTab } from "./skills-tab";
 import { EDITOR_TABS, type EditorTabId, TabNav } from "./tab-nav";
 import { TabPanel } from "./tab-panel";
 
@@ -30,6 +31,8 @@ export function EditorShell({ publicSlug }: { publicSlug: string }): ReactElemen
 							<ExperienceTab />
 						) : tab.id === "projects" ? (
 							<ProjectsTab />
+						) : tab.id === "skills" ? (
+							<SkillsTab />
 						) : (
 							<section className="flex flex-col gap-1">
 								<h2 className="font-display text-base font-bold leading-6 text-fg">{tab.label}</h2>

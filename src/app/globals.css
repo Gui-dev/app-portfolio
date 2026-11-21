@@ -34,6 +34,7 @@
 	--color-accent-sky: var(--accent-sky);
 	--color-accent-deep: var(--accent-deep);
 	--color-accent-pale: var(--accent-pale);
+	--color-fg-placeholder: var(--fg-placeholder);
 
 	--font-display: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
 	--font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -73,6 +74,7 @@
 	--accent-sky: #0ea5e9;
 	--accent-deep: #4338ca;
 	--accent-pale: #a5b4fc;
+	--fg-placeholder: #9ca3af;
 }
 
 body {
