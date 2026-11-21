@@ -35,6 +35,18 @@
 	--color-accent-deep: var(--accent-deep);
 	--color-accent-pale: var(--accent-pale);
 	--color-fg-placeholder: var(--fg-placeholder);
+	--color-template-minimal-surface: var(--template-minimal-surface);
+	--color-template-minimal-border: var(--template-minimal-border);
+	--color-template-minimal-ink: var(--template-minimal-ink);
+	--color-template-minimal-line: var(--template-minimal-line);
+	--color-template-developer-surface: var(--template-developer-surface);
+	--color-template-developer-border: var(--template-developer-border);
+	--color-template-developer-line: var(--template-developer-line);
+	--color-template-developer-comment: var(--template-developer-comment);
+	--color-template-modern-glow: var(--template-modern-glow);
+	--color-template-modern-deep: var(--template-modern-deep);
+	--color-appearance-light-bg: var(--appearance-light-bg);
+	--color-appearance-light-icon: var(--appearance-light-icon);
 
 	--font-display: var(--font-plus-jakarta-sans), ui-sans-serif, system-ui, sans-serif;
 	--font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
@@ -75,6 +87,18 @@
 	--accent-deep: #4338ca;
 	--accent-pale: #a5b4fc;
 	--fg-placeholder: #9ca3af;
+	--template-minimal-surface: #171717;
+	--template-minimal-border: #262626;
+	--template-minimal-ink: #e5e5e5;
+	--template-minimal-line: #404040;
+	--template-developer-surface: #09090b;
+	--template-developer-border: #27272a;
+	--template-developer-line: #3f3f46;
+	--template-developer-comment: #a1a1aa;
+	--template-modern-glow: #1e1b4b;
+	--template-modern-deep: #020617;
+	--appearance-light-bg: #fef3c7;
+	--appearance-light-icon: #d97706;
 }
 
 body {

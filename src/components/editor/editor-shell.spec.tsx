@@ -69,6 +69,20 @@ describe("EditorShell", () => {
 		expect(screen.getByLabelText("Nova habilidade")).toBeInTheDocument();
 	});
 
+	it("should render the appearance form in the Aparência tab", async () => {
+		const user = userEvent.setup();
+		render(<EditorShell publicSlug="lucas-almeida" />);
+
+		await user.click(screen.getByRole("tab", { name: "Aparência" }));
+
+		expect(
+			screen.getByRole("heading", { name: "Personalização Visual do Portfólio" }),
+		).toBeInTheDocument();
+		expect(screen.getByRole("radio", { name: /Minimal/ })).toBeInTheDocument();
+		expect(screen.getByRole("radio", { name: /Developer/ })).toBeInTheDocument();
+		expect(screen.getByRole("radio", { name: /Modern/ })).toBeInTheDocument();
+	});
+
 	it("should switch the panel when another tab is clicked", async () => {
 		const user = userEvent.setup();
 		render(<EditorShell publicSlug="lucas-almeida" />);

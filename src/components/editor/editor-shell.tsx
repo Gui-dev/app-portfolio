@@ -2,6 +2,7 @@
 
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { type ReactElement, useState } from "react";
+import { AppearanceTab } from "./appearance-tab";
 import { EditorActionBar } from "./editor-action-bar";
 import { EditorHeader } from "./editor-header";
 import { ExperienceTab } from "./experience-tab";
@@ -34,12 +35,7 @@ export function EditorShell({ publicSlug }: { publicSlug: string }): ReactElemen
 						) : tab.id === "skills" ? (
 							<SkillsTab />
 						) : (
-							<section className="flex flex-col gap-1">
-								<h2 className="font-display text-base font-bold leading-6 text-fg">{tab.label}</h2>
-								<p className="text-xs leading-4 text-muted">
-									O formulário desta seção será construído nas próximas etapas.
-								</p>
-							</section>
+							<AppearanceTab />
 						)}
 					</TabPanel>
 				))}
