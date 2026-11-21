@@ -117,7 +117,7 @@ export function AppearanceTab(): ReactElement {
 						const selected = template === option.id;
 						return (
 							<label
-								className={`flex h-[173.75px] cursor-pointer flex-col gap-3 rounded-2xl border bg-surface-3 p-4 transition-colors ${CARD_FOCUS} ${
+								className={`flex min-h-[173.75px] cursor-pointer flex-col gap-3 rounded-2xl border bg-surface-3 p-4 transition-colors ${CARD_FOCUS} ${
 									selected
 										? "border-accent shadow-md shadow-accent/10"
 										: "border-border hover:border-border-strong"
