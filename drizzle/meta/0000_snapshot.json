@@ -1,0 +1,511 @@
+{
+	"id": "5b38c9aa-4099-4d67-9bee-9533f7dd3048",
+	"prevId": "00000000-0000-0000-0000-000000000000",
+	"version": "7",
+	"dialect": "postgresql",
+	"tables": {
+		"public.experiences": {
+			"name": "experiences",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"profile_id": {
+					"name": "profile_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"kind": {
+					"name": "kind",
+					"type": "experience_kind",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'formal'"
+				},
+				"role": {
+					"name": "role",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"company": {
+					"name": "company",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"period": {
+					"name": "period",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"description": {
+					"name": "description",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"sort_order": {
+					"name": "sort_order",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 0
+				}
+			},
+			"indexes": {
+				"experiences_profile_id_sort_order_idx": {
+					"name": "experiences_profile_id_sort_order_idx",
+					"columns": [
+						{
+							"expression": "profile_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						},
+						{
+							"expression": "sort_order",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"experiences_profile_id_profiles_id_fk": {
+					"name": "experiences_profile_id_profiles_id_fk",
+					"tableFrom": "experiences",
+					"tableTo": "profiles",
+					"columnsFrom": ["profile_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.profiles": {
+			"name": "profiles",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"user_id": {
+					"name": "user_id",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"slug": {
+					"name": "slug",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"full_name": {
+					"name": "full_name",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"headline": {
+					"name": "headline",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"bio": {
+					"name": "bio",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"location": {
+					"name": "location",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"contact_email": {
+					"name": "contact_email",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"github_url": {
+					"name": "github_url",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"linkedin_url": {
+					"name": "linkedin_url",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"monogram_style": {
+					"name": "monogram_style",
+					"type": "monogram_style",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'gradient'"
+				},
+				"template": {
+					"name": "template",
+					"type": "template",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'modern'"
+				},
+				"color_mode": {
+					"name": "color_mode",
+					"type": "color_mode",
+					"typeSchema": "public",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'dark'"
+				},
+				"is_published": {
+					"name": "is_published",
+					"type": "boolean",
+					"primaryKey": false,
+					"notNull": true,
+					"default": false
+				},
+				"published_at": {
+					"name": "published_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				},
+				"updated_at": {
+					"name": "updated_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {},
+			"foreignKeys": {},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"profiles_user_id_unique": {
+					"name": "profiles_user_id_unique",
+					"nullsNotDistinct": false,
+					"columns": ["user_id"]
+				},
+				"profiles_slug_unique": {
+					"name": "profiles_slug_unique",
+					"nullsNotDistinct": false,
+					"columns": ["slug"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.projects": {
+			"name": "projects",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"profile_id": {
+					"name": "profile_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"description": {
+					"name": "description",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"repo_url": {
+					"name": "repo_url",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"demo_url": {
+					"name": "demo_url",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": false
+				},
+				"tags": {
+					"name": "tags",
+					"type": "text[]",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "'{}'::text[]"
+				},
+				"sort_order": {
+					"name": "sort_order",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 0
+				}
+			},
+			"indexes": {
+				"projects_profile_id_sort_order_idx": {
+					"name": "projects_profile_id_sort_order_idx",
+					"columns": [
+						{
+							"expression": "profile_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						},
+						{
+							"expression": "sort_order",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"projects_profile_id_profiles_id_fk": {
+					"name": "projects_profile_id_profiles_id_fk",
+					"tableFrom": "projects",
+					"tableTo": "profiles",
+					"columnsFrom": ["profile_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.skills": {
+			"name": "skills",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"profile_id": {
+					"name": "profile_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"name": {
+					"name": "name",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"sort_order": {
+					"name": "sort_order",
+					"type": "integer",
+					"primaryKey": false,
+					"notNull": true,
+					"default": 0
+				}
+			},
+			"indexes": {
+				"skills_profile_id_sort_order_idx": {
+					"name": "skills_profile_id_sort_order_idx",
+					"columns": [
+						{
+							"expression": "profile_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						},
+						{
+							"expression": "sort_order",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"skills_profile_id_profiles_id_fk": {
+					"name": "skills_profile_id_profiles_id_fk",
+					"tableFrom": "skills",
+					"tableTo": "profiles",
+					"columnsFrom": ["profile_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		},
+		"public.slug_history": {
+			"name": "slug_history",
+			"schema": "",
+			"columns": {
+				"id": {
+					"name": "id",
+					"type": "uuid",
+					"primaryKey": true,
+					"notNull": true,
+					"default": "gen_random_uuid()"
+				},
+				"profile_id": {
+					"name": "profile_id",
+					"type": "uuid",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"slug": {
+					"name": "slug",
+					"type": "text",
+					"primaryKey": false,
+					"notNull": true
+				},
+				"created_at": {
+					"name": "created_at",
+					"type": "timestamp with time zone",
+					"primaryKey": false,
+					"notNull": true,
+					"default": "now()"
+				}
+			},
+			"indexes": {
+				"slug_history_profile_id_idx": {
+					"name": "slug_history_profile_id_idx",
+					"columns": [
+						{
+							"expression": "profile_id",
+							"isExpression": false,
+							"asc": true,
+							"nulls": "last"
+						}
+					],
+					"isUnique": false,
+					"concurrently": false,
+					"method": "btree",
+					"with": {}
+				}
+			},
+			"foreignKeys": {
+				"slug_history_profile_id_profiles_id_fk": {
+					"name": "slug_history_profile_id_profiles_id_fk",
+					"tableFrom": "slug_history",
+					"tableTo": "profiles",
+					"columnsFrom": ["profile_id"],
+					"columnsTo": ["id"],
+					"onDelete": "cascade",
+					"onUpdate": "no action"
+				}
+			},
+			"compositePrimaryKeys": {},
+			"uniqueConstraints": {
+				"slug_history_slug_unique": {
+					"name": "slug_history_slug_unique",
+					"nullsNotDistinct": false,
+					"columns": ["slug"]
+				}
+			},
+			"policies": {},
+			"checkConstraints": {},
+			"isRLSEnabled": false
+		}
+	},
+	"enums": {
+		"public.color_mode": {
+			"name": "color_mode",
+			"schema": "public",
+			"values": ["light", "dark"]
+		},
+		"public.experience_kind": {
+			"name": "experience_kind",
+			"schema": "public",
+			"values": ["formal", "freelance", "open-source", "academic", "volunteer"]
+		},
+		"public.monogram_style": {
+			"name": "monogram_style",
+			"schema": "public",
+			"values": ["gradient", "solid", "outline"]
+		},
+		"public.template": {
+			"name": "template",
+			"schema": "public",
+			"values": ["minimal", "developer", "modern"]
+		}
+	},
+	"schemas": {},
+	"sequences": {},
+	"roles": {},
+	"policies": {},
+	"views": {},
+	"_meta": {
+		"columns": {},
+		"schemas": {},
+		"tables": {}
+	}
+}
