@@ -9,7 +9,7 @@ import { type ForgotPasswordValues, forgotPasswordSchema } from "@/lib/validatio
 const labelClass = "mb-1.5 block text-xs font-medium leading-4 text-fg-dim";
 const inputClass =
 	"h-[42px] w-full rounded-xl border border-border bg-bg px-[14px] py-[10px] text-sm leading-5 text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg";
-const errorClass = "mt-1 text-xs text-red-500";
+const errorClass = "mt-1 text-xs text-danger";
 
 export function ForgotPasswordForm() {
 	const [message, setMessage] = useState<string | null>(null);

@@ -23,6 +23,7 @@ function renderEmail({
 	html: string;
 } {
 	const safeName = escapeHtml(name);
+	const safeUrl = escapeHtml(url);
 	return {
 		subject: "",
 		html: `<!doctype html>
@@ -36,7 +37,7 @@ function renderEmail({
           <p style="margin:0 0 16px;font-size:16px;line-height:1.5;">Olá, ${safeName}.</p>
           <p style="margin:0 0 24px;font-size:16px;line-height:1.5;">${message}</p>
           <p style="margin:0 0 24px;">
-            <a href="${url}" style="display:inline-block;padding:12px 20px;background:#4f46e5;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;">${ctaLabel}</a>
+            <a href="${safeUrl}" style="display:inline-block;padding:12px 20px;background:#4f46e5;color:#ffffff;text-decoration:none;border-radius:8px;font-weight:600;">${ctaLabel}</a>
           </p>
           <p style="margin:0;font-size:14px;line-height:1.5;color:#6b7280;">Se você não solicitou esta ação, pode ignorar este e-mail.</p>
         </td>

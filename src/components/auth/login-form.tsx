@@ -10,7 +10,7 @@ import { type LoginValues, loginSchema } from "@/lib/validation/auth";
 const labelClass = "mb-1.5 block text-xs font-medium leading-4 text-fg-dim";
 const inputClass =
 	"h-[42px] w-full rounded-xl border border-border bg-bg px-[14px] py-[10px] text-sm leading-5 text-fg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg";
-const errorClass = "mt-1 text-xs text-red-500";
+const errorClass = "mt-1 text-xs text-danger";
 
 type LoginFormProps = {
 	githubEnabled: boolean;
@@ -57,7 +57,7 @@ export function LoginForm({ githubEnabled }: LoginFormProps) {
 				<p className="mt-2 text-sm text-muted">Acesse sua conta para editar seu portfólio.</p>
 			</div>
 			<form className="space-y-4" noValidate onSubmit={handleSubmit(onSubmit)}>
-				<div aria-live="polite" className="min-h-5 text-sm text-red-500" role="status">
+				<div aria-live="polite" className="min-h-5 text-sm text-danger" role="status">
 					{formMessage}
 				</div>
 				<div>

@@ -20,4 +20,18 @@ describe("email-templates", () => {
 		expect(html).not.toContain("<script>alert(1)</script>");
 		expect(html).toContain("&lt;script&gt;alert(1)&lt;/script&gt;");
 	});
+
+	it("should escape a verification url containing unsafe html characters", () => {
+		const { html } = verificationEmailHtml({
+			name: "Lucas",
+			url: 'https://foliocraft.test/verify?token=abc" onclick="alert(1)<x',
+		});
+
+		expect(html).not.toContain(
+			'href="https://foliocraft.test/verify?token=abc" onclick="alert(1)<x"',
+		);
+		expect(html).toContain(
+			'href="https://foliocraft.test/verify?token=abc&quot; onclick=&quot;alert(1)&lt;x"',
+		);
+	});
 });
