@@ -35,9 +35,7 @@ export default defineConfig({
 					name: "integration",
 					environment: "node",
 					include: ["src/**/*.integration.spec.ts"],
-					// Setup files (test database helpers) arrive with the database task;
-					// no database specs exist yet.
-					setupFiles: [],
+					setupFiles: ["./vitest.integration.setup.ts"],
 					fileParallelism: false,
 				},
 			},
