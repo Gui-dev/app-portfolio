@@ -9,12 +9,21 @@ type MailpitMessageSummary = {
 type MailpitMessagesResponse = { messages: MailpitMessageSummary[] };
 type MailpitMessage = { HTML: string };
 
+function decodeHtmlEntities(value: string): string {
+	return value
+		.replaceAll("&lt;", "<")
+		.replaceAll("&gt;", ">")
+		.replaceAll("&quot;", '"')
+		.replaceAll("&#39;", "'")
+		.replaceAll("&amp;", "&");
+}
+
 function extractFirstHref(html: string): string {
 	const match = html.match(/href="([^"]+)"/);
 	if (!match?.[1]) {
 		throw new Error("Mailpit message did not contain an href");
 	}
-	return match[1];
+	return decodeHtmlEntities(match[1]);
 }
 
 export async function waitForEmail({
