@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const httpUrl = z
 	.string()
-	.url()
+	.url("Informe uma URL válida.")
 	.refine((value) => /^https?:\/\//.test(value), {
 		message: "Informe uma URL http(s) válida.",
 	});

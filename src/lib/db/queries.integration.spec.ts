@@ -1,6 +1,6 @@
 import { beforeEach, describe, expect, it } from "vitest";
 import { db } from "@/lib/db/client";
-import { experiences, profiles, slugHistory, user } from "@/lib/db/schema";
+import { experiences, profiles, skills, slugHistory, user } from "@/lib/db/schema";
 import { resetDatabase } from "@/lib/db/test-helpers";
 import {
 	getPublicProfileBySlug,
@@ -74,14 +74,22 @@ describe("profile queries", () => {
 	});
 
 	it("should paginate published profiles by 12", async () => {
+		let newestProfileId = "";
 		for (let i = 0; i < 13; i += 1) {
-			await seedProfile({
+			const profile = await seedProfile({
 				slug: `profile-${String(i).padStart(2, "0")}`,
 				fullName: `Profile ${String(i).padStart(2, "0")}`,
 				isPublished: true,
 				publishedAt: new Date(Date.UTC(2026, 0, 1, 0, 0, i)),
 			});
+			if (i === 12) newestProfileId = profile.id;
 		}
+
+		await db.insert(skills).values([
+			{ profileId: newestProfileId, name: "Third", sortOrder: 2 },
+			{ profileId: newestProfileId, name: "First", sortOrder: 0 },
+			{ profileId: newestProfileId, name: "Second", sortOrder: 1 },
+		]);
 
 		const page1 = await listPublishedProfiles({ page: 1 });
 		const page2 = await listPublishedProfiles({ page: 2 });
@@ -89,6 +97,13 @@ describe("profile queries", () => {
 		expect(page1.items).toHaveLength(12);
 		expect(page1.total).toBe(13);
 		expect(page2.items).toHaveLength(1);
+		expect(page1.items[0]).toMatchObject({
+			slug: "profile-12",
+			fullName: "Profile 12",
+			headline: "Vigilante",
+			skills: ["First", "Second", "Third"],
+		});
+		expect(page2.items[0]?.slug).toBe("profile-00");
 	});
 
 	it("should resolve an old slug only when the target is published", async () => {

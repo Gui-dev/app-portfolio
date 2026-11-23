@@ -2,6 +2,8 @@ import { spawnSync } from "node:child_process";
 import { sql } from "drizzle-orm";
 import postgres from "postgres";
 import { db } from "@/lib/db/client";
+import { env } from "@/lib/env";
+import { assertTestDatabaseUrl } from "./test-guard";
 
 function testUrl(): string {
 	const url = process.env.DATABASE_TEST_URL;
@@ -53,7 +55,8 @@ export async function migrateTestDatabase(): Promise<void> {
 }
 
 export async function resetDatabase(): Promise<void> {
-	testUrl();
+	const url = testUrl();
+	assertTestDatabaseUrl(url, env.DATABASE_URL);
 	await db.execute(
 		sql`TRUNCATE TABLE "slug_history", "skills", "projects", "experiences", "profiles", "session", "account", "verification", "user" RESTART IDENTITY CASCADE`,
 	);
