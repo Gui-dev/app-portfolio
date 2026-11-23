@@ -9,6 +9,9 @@ import {
 	timestamp,
 	uuid,
 } from "drizzle-orm/pg-core";
+import { user } from "./auth-schema";
+
+export * from "./auth-schema";
 
 export const templateEnum = pgEnum("template", ["minimal", "developer", "modern"]);
 export const colorModeEnum = pgEnum("color_mode", ["light", "dark"]);
@@ -23,7 +26,10 @@ export const experienceKindEnum = pgEnum("experience_kind", [
 
 export const profiles = pgTable("profiles", {
 	id: uuid("id").primaryKey().defaultRandom(),
-	userId: text("user_id").notNull().unique(),
+	userId: text("user_id")
+		.notNull()
+		.unique()
+		.references(() => user.id, { onDelete: "cascade" }),
 	slug: text("slug").unique(),
 	fullName: text("full_name"),
 	headline: text("headline"),
