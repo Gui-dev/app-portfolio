@@ -7,17 +7,12 @@ import type { AutosaveStatus } from "./use-autosave";
 const focusRing =
 	"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface-2";
 
-function statusLabel(status: AutosaveStatus): string {
-	switch (status) {
-		case "saving":
-			return "Salvando rascunho...";
-		case "saved":
-			return "Rascunho sincronizado";
-		case "error":
-			return "Erro ao salvar rascunho";
-		default:
-			return "Rascunho sincronizado";
-	}
+function statusLabel(status: AutosaveStatus, isDirty: boolean): string {
+	if (status === "saving") return "Salvando rascunho...";
+	if (status === "error") return "Erro ao salvar rascunho";
+	if (status === "saved" && !isDirty) return "Rascunho sincronizado";
+	if (isDirty) return "Alterações não salvas";
+	return "Rascunho pronto";
 }
 
 export function EditorActionBar({
@@ -25,16 +20,18 @@ export function EditorActionBar({
 	onPublish,
 	publishPending = false,
 	isPublished = false,
+	isDirty = false,
 }: {
 	status?: AutosaveStatus;
 	onPublish?: () => void;
 	publishPending?: boolean;
 	isPublished?: boolean;
+	isDirty?: boolean;
 }): ReactElement {
 	return (
 		<footer className="flex shrink-0 items-center justify-between border-t border-border/80 bg-surface-2 px-6 py-3.5">
 			<span aria-live="polite" className="pl-2 text-xs leading-4 text-muted">
-				{statusLabel(status)}
+				{statusLabel(status, isDirty)}
 			</span>
 			<div className="flex items-center gap-2.5">
 				<button

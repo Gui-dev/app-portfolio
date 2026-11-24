@@ -3,10 +3,10 @@ import { describe, expect, it } from "vitest";
 import { EditorActionBar } from "./editor-action-bar";
 
 describe("EditorActionBar", () => {
-	it("should render the synced-draft status text", () => {
+	it("should render the default draft status text", () => {
 		render(<EditorActionBar />);
 
-		expect(screen.getByText("Rascunho sincronizado")).toBeInTheDocument();
+		expect(screen.getByText("Rascunho pronto")).toBeInTheDocument();
 	});
 
 	it("should render the export and publish buttons with their pt-BR labels", () => {

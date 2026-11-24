@@ -72,12 +72,25 @@ export function EditorShell({ profile }: { profile: ProfileWithRelations }): Rea
 		setIsPublished(result.profile.isPublished);
 	}, []);
 
-	const { status } = useAutosave({ values: draft, save, delay: 800 });
+	const { status, isDirty } = useAutosave({ values: draft, save, delay: 800 });
 
 	const publicSlug = draft.slug?.trim() || profile.slug || "seu-slug";
 
 	const onPublish = () => {
 		startPublish(async () => {
+			if (!isPublished) {
+				const saveResult = await saveProfileDraft(draft);
+				if (!saveResult.ok) {
+					if (saveResult.fieldErrors) {
+						setServerFieldErrors(
+							saveResult.fieldErrors as Partial<Record<keyof ProfileDraft, string>>,
+						);
+					}
+					return;
+				}
+				setServerFieldErrors({});
+				setIsPublished(saveResult.profile.isPublished);
+			}
 			const result = isPublished ? await unpublishProfile() : await publishProfile();
 			if (!result.ok) {
 				if (result.fieldErrors) {
@@ -88,9 +101,14 @@ export function EditorShell({ profile }: { profile: ProfileWithRelations }): Rea
 			const nextDraft = toDraft(result.profile);
 			setServerFieldErrors({});
 			setIsPublished(result.profile.isPublished);
-			setInitialDraft(nextDraft);
-			setDraft(nextDraft);
-			setFormVersion((v) => v + 1);
+			if (isPublished) {
+				setInitialDraft(nextDraft);
+				setDraft((current) => ({ ...current, slug: nextDraft.slug }));
+			} else {
+				setInitialDraft(nextDraft);
+				setDraft(nextDraft);
+				setFormVersion((v) => v + 1);
+			}
 		});
 	};
 
@@ -132,6 +150,7 @@ export function EditorShell({ profile }: { profile: ProfileWithRelations }): Rea
 				))}
 			</TabsPrimitive.Root>
 			<EditorActionBar
+				isDirty={isDirty}
 				isPublished={isPublished}
 				onPublish={onPublish}
 				publishPending={publishPending}

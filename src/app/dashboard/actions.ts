@@ -39,6 +39,12 @@ async function requireSessionUser() {
 	return session.user;
 }
 
+function isUniqueViolation(error: unknown): boolean {
+	if (!error || typeof error !== "object") return false;
+	const code = (error as { code?: unknown }).code;
+	return code === "23505";
+}
+
 function draftFromProfile(profile: ProfileWithRelations): ProfileDraft {
 	return {
 		fullName: profile.fullName ?? "",
@@ -112,12 +118,17 @@ export async function ensureProfileForUser(
 	email: string,
 	name?: string | null,
 ): Promise<ProfileWithRelations> {
+	const sessionUser = await requireSessionUser();
+	if (sessionUser.id !== userId) {
+		throw new Error("Unauthorized");
+	}
+
 	const existing = await loadProfileByUserId(userId);
 	if (existing) return existing;
 
 	const localPart = email.split("@")[0] ?? "user";
 	const base = normalizeSlug(localPart) || "user";
-	const slug = await nextAvailableSlug(base);
+	const slug = await nextAvailableSlug(base, undefined);
 	if (!slug) {
 		throw new Error("Unable to allocate slug");
 	}
@@ -153,29 +164,73 @@ export async function saveProfileDraft(input: ProfileDraft): Promise<SaveProfile
 		}
 	}
 
-	const result = await db.transaction(async (tx) => {
-		let profile = await tx.query.profiles.findFirst({
-			where: eq(profiles.userId, user.id),
-		});
+	let result:
+		| { ok: true; profileId: string }
+		| { ok: false; fieldErrors?: ActionFieldErrors; error?: string };
+	try {
+		result = await db.transaction(async (tx) => {
+			let profile = await tx.query.profiles.findFirst({
+				where: eq(profiles.userId, user.id),
+			});
 
-		if (!profile) {
-			const base = normalizedSlug || normalizeSlug(user.email.split("@")[0] ?? "user") || "user";
-			if (normalizedSlug) {
-				const available = await isSlugAvailable(normalizedSlug);
+			if (!profile) {
+				const base = normalizedSlug || normalizeSlug(user.email.split("@")[0] ?? "user") || "user";
+				if (normalizedSlug) {
+					const available = await isSlugAvailable(normalizedSlug);
+					if (!available) {
+						return { ok: false, fieldErrors: { slug: "Este slug já está em uso." } } as const;
+					}
+				}
+				const allocated = normalizedSlug || (await nextAvailableSlug(base));
+				if (!allocated) {
+					return { ok: false, error: "Não foi possível gerar um slug." } as const;
+				}
+				const [created] = await tx
+					.insert(profiles)
+					.values({
+						userId: user.id,
+						slug: allocated,
+						fullName: draft.fullName || user.name || null,
+						headline: draft.headline || null,
+						bio: draft.bio || null,
+						location: draft.location || null,
+						contactEmail: draft.contactEmail,
+						githubUrl: draft.githubUrl || null,
+						linkedinUrl: draft.linkedinUrl || null,
+						monogramStyle: draft.monogramStyle,
+						template: draft.template,
+						colorMode: draft.colorMode,
+					})
+					.returning();
+				profile = created;
+			}
+
+			if (!profile) return { ok: false, error: "Perfil não encontrado." } as const;
+
+			const oldSlug = profile.slug;
+			let nextSlug = oldSlug;
+
+			if (normalizedSlug && normalizedSlug !== oldSlug) {
+				const available = await isSlugAvailable(normalizedSlug, { forProfileId: profile.id });
 				if (!available) {
 					return { ok: false, fieldErrors: { slug: "Este slug já está em uso." } } as const;
 				}
+				await tx
+					.delete(slugHistory)
+					.where(and(eq(slugHistory.profileId, profile.id), eq(slugHistory.slug, normalizedSlug)));
+
+				if (oldSlug) {
+					await tx.delete(slugHistory).where(eq(slugHistory.slug, oldSlug));
+					await tx.insert(slugHistory).values({ profileId: profile.id, slug: oldSlug });
+				}
+				nextSlug = normalizedSlug;
 			}
-			const allocated = normalizedSlug || (await nextAvailableSlug(base));
-			if (!allocated) {
-				return { ok: false, error: "Não foi possível gerar um slug." } as const;
-			}
-			const [created] = await tx
-				.insert(profiles)
-				.values({
-					userId: user.id,
-					slug: allocated,
-					fullName: draft.fullName || user.name || null,
+
+			await tx
+				.update(profiles)
+				.set({
+					slug: nextSlug,
+					fullName: draft.fullName || null,
 					headline: draft.headline || null,
 					bio: draft.bio || null,
 					location: draft.location || null,
@@ -186,95 +241,57 @@ export async function saveProfileDraft(input: ProfileDraft): Promise<SaveProfile
 					template: draft.template,
 					colorMode: draft.colorMode,
 				})
-				.returning();
-			profile = created;
-		}
+				.where(eq(profiles.id, profile.id));
 
-		if (!profile) return { ok: false, error: "Perfil não encontrado." } as const;
-
-		const oldSlug = profile.slug;
-		let nextSlug = oldSlug;
-
-		if (normalizedSlug) {
-			if (normalizedSlug !== oldSlug) {
-				const available = await isSlugAvailable(normalizedSlug, { forProfileId: profile.id });
-				if (!available) {
-					return { ok: false, fieldErrors: { slug: "Este slug já está em uso." } } as const;
-				}
-				// reclaim own old slug: remove history row for that slug owned by this profile
-				await tx
-					.delete(slugHistory)
-					.where(and(eq(slugHistory.profileId, profile.id), eq(slugHistory.slug, normalizedSlug)));
-
-				if (oldSlug) {
-					// record previous slug in history; remove any stale row for oldSlug (should not exist for others due availability)
-					await tx.delete(slugHistory).where(eq(slugHistory.slug, oldSlug));
-					await tx.insert(slugHistory).values({ profileId: profile.id, slug: oldSlug });
-				}
-				nextSlug = normalizedSlug;
+			await tx.delete(experiences).where(eq(experiences.profileId, profile.id));
+			if (draft.experiences.length > 0) {
+				await tx.insert(experiences).values(
+					draft.experiences.map((e, index) => ({
+						profileId: profile.id,
+						kind: e.kind,
+						role: e.role,
+						company: e.company,
+						period: e.period,
+						description: e.description,
+						sortOrder: e.sortOrder ?? index,
+					})),
+				);
 			}
+
+			await tx.delete(projects).where(eq(projects.profileId, profile.id));
+			if (draft.projects.length > 0) {
+				await tx.insert(projects).values(
+					draft.projects.map((p, index) => ({
+						profileId: profile.id,
+						name: p.name,
+						description: p.description,
+						repoUrl: p.repoUrl || null,
+						demoUrl: p.demoUrl || null,
+						tags: p.tags,
+						sortOrder: p.sortOrder ?? index,
+					})),
+				);
+			}
+
+			await tx.delete(skills).where(eq(skills.profileId, profile.id));
+			if (draft.skills.length > 0) {
+				await tx.insert(skills).values(
+					draft.skills.map((name, index) => ({
+						profileId: profile.id,
+						name,
+						sortOrder: index,
+					})),
+				);
+			}
+
+			return { ok: true as const, profileId: profile.id };
+		});
+	} catch (error) {
+		if (isUniqueViolation(error)) {
+			return { ok: false, fieldErrors: { slug: "Este slug já está em uso." } };
 		}
-
-		await tx
-			.update(profiles)
-			.set({
-				slug: nextSlug,
-				fullName: draft.fullName || null,
-				headline: draft.headline || null,
-				bio: draft.bio || null,
-				location: draft.location || null,
-				contactEmail: draft.contactEmail,
-				githubUrl: draft.githubUrl || null,
-				linkedinUrl: draft.linkedinUrl || null,
-				monogramStyle: draft.monogramStyle,
-				template: draft.template,
-				colorMode: draft.colorMode,
-			})
-			.where(eq(profiles.id, profile.id));
-
-		await tx.delete(experiences).where(eq(experiences.profileId, profile.id));
-		if (draft.experiences.length > 0) {
-			await tx.insert(experiences).values(
-				draft.experiences.map((e, index) => ({
-					profileId: profile.id,
-					kind: e.kind,
-					role: e.role,
-					company: e.company,
-					period: e.period,
-					description: e.description,
-					sortOrder: e.sortOrder ?? index,
-				})),
-			);
-		}
-
-		await tx.delete(projects).where(eq(projects.profileId, profile.id));
-		if (draft.projects.length > 0) {
-			await tx.insert(projects).values(
-				draft.projects.map((p, index) => ({
-					profileId: profile.id,
-					name: p.name,
-					description: p.description,
-					repoUrl: p.repoUrl || null,
-					demoUrl: p.demoUrl || null,
-					tags: p.tags,
-					sortOrder: p.sortOrder ?? index,
-				})),
-			);
-		}
-
-		await tx.delete(skills).where(eq(skills.profileId, profile.id));
-		if (draft.skills.length > 0) {
-			await tx.insert(skills).values(
-				draft.skills.map((name, index) => ({
-					profileId: profile.id,
-					name,
-					sortOrder: index,
-				})),
-			);
-		}
-
-		return { ok: true as const, profileId: profile.id };
-	});
+		throw error;
+	}
 
 	if (!result.ok) return result;
 
@@ -303,19 +320,21 @@ export async function publishProfile(): Promise<PublishProfileResult> {
 	}
 
 	const slug = normalizeSlug(parsed.data.slug);
-	const available = await isSlugAvailable(slug, { forProfileId: profile.id });
-	if (!available) {
-		return { ok: false, fieldErrors: { slug: "Este slug já está em uso." } };
+	try {
+		await db
+			.update(profiles)
+			.set({
+				isPublished: true,
+				publishedAt: new Date(),
+				slug,
+			})
+			.where(eq(profiles.id, profile.id));
+	} catch (error) {
+		if (isUniqueViolation(error)) {
+			return { ok: false, fieldErrors: { slug: "Este slug já está em uso." } };
+		}
+		throw error;
 	}
-
-	await db
-		.update(profiles)
-		.set({
-			isPublished: true,
-			publishedAt: new Date(),
-			slug,
-		})
-		.where(eq(profiles.id, profile.id));
 
 	revalidatePath(`/${slug}`);
 	revalidatePath("/explore");

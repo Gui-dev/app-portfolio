@@ -73,4 +73,39 @@ describe("useAutosave", () => {
 
 		expect(result.current.status).toBe("error");
 	});
+
+	it("should save edits made during an in-flight save", async () => {
+		let resolveFirst: (() => void) | undefined;
+		const save = vi
+			.fn()
+			.mockImplementationOnce(
+				() =>
+					new Promise<void>((resolve) => {
+						resolveFirst = resolve;
+					}),
+			)
+			.mockResolvedValue(undefined);
+		const { result, rerender } = renderHook(({ values }) => useAutosave({ values, save }), {
+			initialProps: { values: { name: "A" } },
+		});
+
+		rerender({ values: { name: "B" } });
+		await act(async () => {
+			await vi.advanceTimersByTimeAsync(800);
+		});
+		expect(save).toHaveBeenCalledTimes(1);
+		expect(result.current.status).toBe("saving");
+
+		rerender({ values: { name: "C" } });
+		await act(async () => {
+			resolveFirst?.();
+			await vi.advanceTimersByTimeAsync(0);
+			await Promise.resolve();
+			await Promise.resolve();
+		});
+		expect(save).toHaveBeenCalledTimes(2);
+		expect(save).toHaveBeenLastCalledWith({ name: "C" });
+		expect(result.current.status).toBe("saved");
+		expect(result.current.isDirty).toBe(false);
+	});
 });

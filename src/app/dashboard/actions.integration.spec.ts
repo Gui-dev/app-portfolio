@@ -244,3 +244,25 @@ describe("dashboard actions", () => {
 		expect(profile.slug).toBe("lucas-almeida-2");
 	});
 });
+
+it("should reject ensureProfileForUser for another user", async () => {
+	const a = await seedUser({ id: "user-a", email: "a@example.com" });
+	await seedUser({ id: "user-b", email: "b@example.com" });
+	sessionState.user = { id: "user-b", email: "b@example.com", name: "B", emailVerified: true };
+	await expect(ensureProfileForUser(a.id, a.email, a.name)).rejects.toThrow("Unauthorized");
+});
+
+it("should unpublish profile and revalidate", async () => {
+	await seedUser();
+	await saveProfileDraft(makeDraft({ slug: "bruce-wayne", fullName: "Bruce Wayne" }));
+	await publishProfile();
+	revalidatePath.mockClear();
+	const result = await unpublishProfile();
+	expect(result.ok).toBe(true);
+	if (!result.ok) return;
+	expect(result.profile.isPublished).toBe(false);
+	expect(result.profile.publishedAt).toBeNull();
+	expect(revalidatePath).toHaveBeenCalledWith("/bruce-wayne");
+	expect(revalidatePath).toHaveBeenCalledWith("/explore");
+	expect(revalidatePath).toHaveBeenCalledWith("/sitemap.xml");
+});
