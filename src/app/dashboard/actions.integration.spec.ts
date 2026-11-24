@@ -1,0 +1,246 @@
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { db } from "@/lib/db/client";
+import { profiles, slugHistory, user } from "@/lib/db/schema";
+import { resetDatabase } from "@/lib/db/test-helpers";
+import type { ProfileDraft } from "@/lib/validation/profile";
+
+const sessionState = vi.hoisted(() => ({
+	user: null as { id: string; email: string; name: string; emailVerified: boolean } | null,
+}));
+
+const { revalidatePath, revalidateTag } = vi.hoisted(() => ({
+	revalidatePath: vi.fn(),
+	revalidateTag: vi.fn(),
+}));
+
+vi.mock("@/lib/auth", () => ({
+	auth: {
+		api: {
+			getSession: vi.fn(async () => (sessionState.user ? { user: sessionState.user } : null)),
+		},
+	},
+}));
+
+vi.mock("next/headers", () => ({
+	headers: vi.fn(async () => new Headers()),
+}));
+
+vi.mock("next/cache", () => ({
+	revalidatePath,
+	revalidateTag,
+}));
+
+import {
+	ensureProfileForUser,
+	publishProfile,
+	saveProfileDraft,
+	unpublishProfile,
+} from "./actions";
+
+async function seedUser(overrides: Partial<typeof user.$inferInsert> = {}) {
+	const id = overrides.id ?? crypto.randomUUID();
+	const row = {
+		id,
+		name: "Test User",
+		email: `${id}@example.com`,
+		emailVerified: true,
+		...overrides,
+	};
+	await db.insert(user).values(row);
+	sessionState.user = {
+		id: row.id,
+		email: row.email,
+		name: row.name,
+		emailVerified: row.emailVerified ?? true,
+	};
+	return row;
+}
+
+function makeDraft(overrides: Partial<ProfileDraft> = {}): ProfileDraft {
+	return {
+		fullName: "Bruce Wayne",
+		headline: "Vigilante",
+		bio: "I am Batman.",
+		location: "Gotham",
+		contactEmail: "bruce@wayne.dev",
+		githubUrl: "https://github.com/brucewayne",
+		linkedinUrl: "https://linkedin.com/in/brucewayne",
+		monogramStyle: "gradient",
+		template: "modern",
+		colorMode: "dark",
+		slug: "bruce-wayne",
+		experiences: [],
+		projects: [],
+		skills: [],
+		...overrides,
+	};
+}
+
+describe("dashboard actions", () => {
+	beforeEach(async () => {
+		await resetDatabase();
+		revalidatePath.mockClear();
+		revalidateTag.mockClear();
+		sessionState.user = null;
+	});
+
+	it("should create a draft profile on first save", async () => {
+		const u = await seedUser();
+		const result = await saveProfileDraft(makeDraft());
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.profile.userId).toBe(u.id);
+		expect(result.profile.fullName).toBe("Bruce Wayne");
+		expect(result.profile.slug).toBe("bruce-wayne");
+		expect(result.profile.isPublished).toBe(false);
+	});
+
+	it("should update the profile and its children", async () => {
+		await seedUser();
+		await saveProfileDraft(
+			makeDraft({
+				experiences: [
+					{
+						kind: "formal",
+						role: "CEO",
+						company: "Wayne Enterprises",
+						period: "2010 - Now",
+						description: "Running things.",
+						sortOrder: 0,
+					},
+				],
+				projects: [
+					{
+						name: "Batmobile",
+						description: "A car.",
+						repoUrl: "https://github.com/bruce/batmobile",
+						demoUrl: "",
+						tags: ["car"],
+						sortOrder: 0,
+					},
+				],
+				skills: ["TypeScript", "React"],
+			}),
+		);
+
+		const result = await saveProfileDraft(
+			makeDraft({
+				headline: "Updated",
+				experiences: [],
+				projects: [
+					{
+						name: "Batwing",
+						description: "A plane.",
+						repoUrl: "",
+						demoUrl: "https://batwing.dev",
+						tags: ["plane"],
+						sortOrder: 0,
+					},
+				],
+				skills: ["Go"],
+			}),
+		);
+
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.profile.headline).toBe("Updated");
+		expect(result.profile.experiences).toHaveLength(0);
+		expect(result.profile.projects).toHaveLength(1);
+		expect(result.profile.projects[0]?.name).toBe("Batwing");
+		expect(result.profile.skills.map((s) => s.name)).toEqual(["Go"]);
+	});
+
+	it("should return a field error when the slug is taken", async () => {
+		const owner = await seedUser({ id: "owner", email: "owner@example.com" });
+		await db.insert(profiles).values({
+			userId: owner.id,
+			slug: "taken-slug",
+			fullName: "Owner",
+			contactEmail: owner.email,
+		});
+
+		await seedUser({ id: "other", email: "other@example.com" });
+		const result = await saveProfileDraft(makeDraft({ slug: "taken-slug" }));
+		expect(result.ok).toBe(false);
+		if (result.ok) return;
+		expect(result.fieldErrors?.slug).toBeTruthy();
+	});
+
+	it("should record the previous slug when the slug changes", async () => {
+		const u = await seedUser();
+		await saveProfileDraft(makeDraft({ slug: "old-slug" }));
+		await saveProfileDraft(makeDraft({ slug: "new-slug" }));
+
+		const rows = await db.select().from(slugHistory);
+		expect(rows.some((r) => r.slug === "old-slug")).toBe(true);
+		const profile = await db.query.profiles.findFirst({ where: (p, { eq }) => eq(p.userId, u.id) });
+		expect(profile?.slug).toBe("new-slug");
+	});
+
+	it("should remove the history row when reclaiming the own old slug", async () => {
+		await seedUser();
+		await saveProfileDraft(makeDraft({ slug: "first-slug" }));
+		await saveProfileDraft(makeDraft({ slug: "second-slug" }));
+		const result = await saveProfileDraft(makeDraft({ slug: "first-slug" }));
+		expect(result.ok).toBe(true);
+
+		const rows = await db.select().from(slugHistory);
+		expect(rows.some((r) => r.slug === "first-slug")).toBe(false);
+		expect(rows.some((r) => r.slug === "second-slug")).toBe(true);
+	});
+
+	it("should reject unauthenticated calls", async () => {
+		sessionState.user = null;
+		await expect(saveProfileDraft(makeDraft())).rejects.toThrow();
+		await expect(publishProfile()).rejects.toThrow();
+		await expect(unpublishProfile()).rejects.toThrow();
+	});
+
+	it("should refuse to publish without a full name", async () => {
+		await seedUser();
+		await saveProfileDraft(makeDraft({ fullName: "", slug: "bruce-wayne" }));
+		const result = await publishProfile();
+		expect(result.ok).toBe(false);
+		if (result.ok) return;
+		expect(result.fieldErrors?.fullName || result.error).toBeTruthy();
+	});
+
+	it("should set publishedAt and revalidate on publish", async () => {
+		await seedUser();
+		await saveProfileDraft(makeDraft({ fullName: "Bruce Wayne", slug: "bruce-wayne" }));
+		revalidatePath.mockClear();
+		const result = await publishProfile();
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.profile.isPublished).toBe(true);
+		expect(result.profile.publishedAt).toBeInstanceOf(Date);
+		expect(revalidatePath).toHaveBeenCalledWith("/bruce-wayne");
+		expect(revalidatePath).toHaveBeenCalledWith("/explore");
+		expect(revalidatePath).toHaveBeenCalledWith("/sitemap.xml");
+	});
+
+	it("should create a profile idempotently with ensureProfileForUser", async () => {
+		const u = await seedUser({ email: "lucas.almeida@example.com", name: "Lucas Almeida" });
+		const first = await ensureProfileForUser(u.id, u.email, u.name);
+		const second = await ensureProfileForUser(u.id, u.email, u.name);
+		expect(first.id).toBe(second.id);
+		expect(first.slug).toBeTruthy();
+	});
+
+	it("should suffix slug on collision in ensureProfileForUser", async () => {
+		const owner = await seedUser({ id: "owner", email: "owner@example.com", name: "Owner" });
+		await db.insert(profiles).values({
+			userId: owner.id,
+			slug: "lucas-almeida",
+			fullName: "Owner",
+			contactEmail: owner.email,
+		});
+		const u = await seedUser({
+			id: "lucas",
+			email: "lucas.almeida@example.com",
+			name: "Lucas Almeida",
+		});
+		const profile = await ensureProfileForUser(u.id, u.email, u.name);
+		expect(profile.slug).toBe("lucas-almeida-2");
+	});
+});

@@ -6,11 +6,12 @@ import { type ReactElement, useState } from "react";
 const focusRing =
 	"focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-bg";
 
-export function EditorHeader({ publicSlug }: { publicSlug: string }): ReactElement {
+export function EditorHeader({ publicSlug }: { publicSlug: string | null }): ReactElement {
 	const [isLight, setIsLight] = useState(false);
+	const slug = publicSlug?.trim() || "seu-slug";
 
 	function copyPublicUrl() {
-		void navigator.clipboard?.writeText?.(`https://foliocraft.app/${publicSlug}`);
+		void navigator.clipboard?.writeText?.(`https://foliocraft.app/${slug}`);
 	}
 
 	return (
@@ -40,7 +41,7 @@ export function EditorHeader({ publicSlug }: { publicSlug: string }): ReactEleme
 					<span aria-hidden="true" className="size-2 shrink-0 rounded-full bg-success" />
 					<span className="whitespace-nowrap font-mono text-xs leading-4">
 						<span className="text-fg/80">foliocraft.app/</span>
-						<span className="font-bold text-accent-soft">{publicSlug}</span>
+						<span className="font-bold text-accent-soft">{slug}</span>
 					</span>
 					<button
 						aria-label="Copiar link do portfólio"
