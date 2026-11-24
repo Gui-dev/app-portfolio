@@ -3,7 +3,7 @@ import type { ColorMode, Template } from "@/lib/db/schema";
 
 export type TemplateToken = { name: string; description: string };
 
-type TemplateStyle = CSSProperties &
+export type TemplateStyle = CSSProperties &
 	Record<
 		"--bg" | "--surface" | "--border" | "--fg" | "--muted" | "--accent" | "--accent-2",
 		string
@@ -87,6 +87,6 @@ export const TEMPLATES: Record<Template, TemplateToken> = {
 	},
 };
 
-export function templateStyle(template: Template, mode: ColorMode): CSSProperties {
+export function templateStyle(template: Template, mode: ColorMode): TemplateStyle {
 	return { ...STYLES[template][mode] };
 }

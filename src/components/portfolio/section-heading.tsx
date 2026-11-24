@@ -11,7 +11,10 @@ export function SectionHeading({
 	id?: string;
 }): ReactElement {
 	return (
-		<h2 id={id} className={cn("pf-section-heading pf-display", className)}>
+		<h2 id={id} className={cn("pf-section-heading pf-display pf-label", className)}>
+			<span aria-hidden="true" className="pf-code-prefix">
+				{"//"}
+			</span>
 			{children}
 		</h2>
 	);

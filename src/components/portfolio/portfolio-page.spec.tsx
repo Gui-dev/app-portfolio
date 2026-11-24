@@ -103,6 +103,14 @@ describe("PortfolioPage", () => {
 		expect(screen.queryByRole("heading", { name: "Stack & Tecnologias" })).not.toBeInTheDocument();
 	});
 
+	it("should render bio and social links without a Sobre heading", () => {
+		render(<PortfolioPage profile={makeProfile()} />);
+
+		expect(screen.queryByRole("heading", { name: "Sobre" })).not.toBeInTheDocument();
+		expect(screen.getByText("Construo produtos com foco em qualidade.")).toBeInTheDocument();
+		expect(screen.getByRole("link", { name: "GitHub" })).toBeInTheDocument();
+	});
+
 	it("should render 100 skills without crashing", () => {
 		const skills = Array.from({ length: 100 }, (_, index) => ({
 			id: `skill-${index}`,
@@ -148,5 +156,14 @@ describe("PortfolioPage", () => {
 		render(<PortfolioPage profile={makeProfile()} />);
 
 		expect(screen.getByText("Open Source")).toBeInTheDocument();
+	});
+
+	it("should keep developer heading accessible name and render decorative prefix", () => {
+		const { container } = render(
+			<PortfolioPage profile={makeProfile({ template: "developer", colorMode: "dark" })} />,
+		);
+
+		expect(screen.getByRole("heading", { name: "Experiência Profissional" })).toBeInTheDocument();
+		expect(container.querySelector(".pf-code-prefix")).not.toBeNull();
 	});
 });

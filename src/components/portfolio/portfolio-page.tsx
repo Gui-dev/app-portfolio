@@ -5,7 +5,6 @@ import { templateStyle } from "@/lib/template";
 import { ExperienceList } from "./experience-list";
 import { Monogram } from "./monogram";
 import { ProjectList } from "./project-list";
-import { SectionHeading } from "./section-heading";
 import { SkillList } from "./skill-list";
 import { ContactRow, SocialLinks } from "./social-links";
 
@@ -41,11 +40,10 @@ export function PortfolioPage({
 				</header>
 
 				{bio || profile.githubUrl || profile.linkedinUrl ? (
-					<section aria-labelledby="pf-about-heading" className="pf-section">
-						<SectionHeading id="pf-about-heading">Sobre</SectionHeading>
+					<div className="pf-intro pf-section">
 						{bio ? <p className="pf-bio">{bio}</p> : null}
 						<SocialLinks githubUrl={profile.githubUrl} linkedinUrl={profile.linkedinUrl} />
-					</section>
+					</div>
 				) : null}
 
 				<SkillList skills={profile.skills} />
