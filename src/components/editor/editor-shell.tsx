@@ -78,37 +78,34 @@ export function EditorShell({ profile }: { profile: ProfileWithRelations }): Rea
 
 	const onPublish = () => {
 		startPublish(async () => {
-			if (!isPublished) {
-				const saveResult = await saveProfileDraft(draft);
-				if (!saveResult.ok) {
-					if (saveResult.fieldErrors) {
-						setServerFieldErrors(
-							saveResult.fieldErrors as Partial<Record<keyof ProfileDraft, string>>,
-						);
-					}
-					return;
+			const saveResult = await saveProfileDraft(draft);
+			if (!saveResult.ok) {
+				if (saveResult.fieldErrors) {
+					setServerFieldErrors(
+						saveResult.fieldErrors as Partial<Record<keyof ProfileDraft, string>>,
+					);
 				}
-				setServerFieldErrors({});
-				setIsPublished(saveResult.profile.isPublished);
+				return;
 			}
-			const result = isPublished ? await unpublishProfile() : await publishProfile();
+			setServerFieldErrors({});
+			setIsPublished(saveResult.profile.isPublished);
+
+			const result = saveResult.profile.isPublished
+				? await unpublishProfile()
+				: await publishProfile();
 			if (!result.ok) {
 				if (result.fieldErrors) {
 					setServerFieldErrors(result.fieldErrors as Partial<Record<keyof ProfileDraft, string>>);
 				}
 				return;
 			}
+
 			const nextDraft = toDraft(result.profile);
 			setServerFieldErrors({});
 			setIsPublished(result.profile.isPublished);
-			if (isPublished) {
-				setInitialDraft(nextDraft);
-				setDraft((current) => ({ ...current, slug: nextDraft.slug }));
-			} else {
-				setInitialDraft(nextDraft);
-				setDraft(nextDraft);
-				setFormVersion((v) => v + 1);
-			}
+			setInitialDraft(nextDraft);
+			setDraft(nextDraft);
+			setFormVersion((v) => v + 1);
 		});
 	};
 
