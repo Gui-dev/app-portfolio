@@ -144,6 +144,11 @@ export const slugHistoryRelations = relations(slugHistory, ({ one }) => ({
 	}),
 }));
 
+export type Template = (typeof templateEnum.enumValues)[number];
+export type ColorMode = (typeof colorModeEnum.enumValues)[number];
+export type MonogramStyle = (typeof monogramStyleEnum.enumValues)[number];
+export type ExperienceKind = (typeof experienceKindEnum.enumValues)[number];
+
 export type Profile = typeof profiles.$inferSelect;
 export type NewProfile = typeof profiles.$inferInsert;
 export type Experience = typeof experiences.$inferSelect;
