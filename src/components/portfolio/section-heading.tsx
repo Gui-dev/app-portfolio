@@ -11,7 +11,7 @@ export function SectionHeading({
 	id?: string;
 }): ReactElement {
 	return (
-		<h2 id={id} className={cn("pf-section-heading pf-display pf-label", className)}>
+		<h2 id={id} className={cn("pf-section-heading pf-display", className)}>
 			<span aria-hidden="true" className="pf-code-prefix">
 				{"//"}
 			</span>

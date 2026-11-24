@@ -475,10 +475,6 @@ body {
 	margin-right: 0.5ch;
 }
 
-[data-template="developer"] .pf-root {
-	font-family: var(--font-sans);
-}
-
 [data-template="developer"] .pf-card {
 	border-radius: 0.5rem;
 }
