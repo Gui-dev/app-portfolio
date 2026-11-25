@@ -1,6 +1,31 @@
+import { execFileSync } from "node:child_process";
 import { expect, test } from "@playwright/test";
 import { waitForEmail } from "./helpers/mailpit";
 import { uniqueEmail } from "./helpers/users";
+
+const createdEmails: string[] = [];
+
+test.afterEach(() => {
+	for (const email of createdEmails.splice(0)) {
+		execFileSync(
+			"podman",
+			[
+				"compose",
+				"exec",
+				"-T",
+				"postgres",
+				"psql",
+				"-U",
+				"foliocraft",
+				"-d",
+				"foliocraft",
+				"-c",
+				`DELETE FROM "user" WHERE email = '${email.replace(/'/g, "''")}'`,
+			],
+			{ stdio: "ignore" },
+		);
+	}
+});
 
 async function signUpAndVerify(
 	page: import("@playwright/test").Page,
@@ -35,6 +60,7 @@ async function login(page: import("@playwright/test").Page, email: string, passw
 
 test("should persist the headline after reload", async ({ page }) => {
 	const email = uniqueEmail("editor");
+	createdEmails.push(email);
 	const password = "password123";
 
 	await signUpAndVerify(page, email, password);
@@ -51,6 +77,7 @@ test("should persist the headline after reload", async ({ page }) => {
 
 test("should keep added experience after reload", async ({ page }) => {
 	const email = uniqueEmail("editor-exp");
+	createdEmails.push(email);
 	const password = "password123";
 
 	await signUpAndVerify(page, email, password);
@@ -78,6 +105,7 @@ test("should keep added experience after reload", async ({ page }) => {
 
 test("should load beginner samples and keep after reload", async ({ page }) => {
 	const email = uniqueEmail("editor-samples");
+	createdEmails.push(email);
 	const password = "password123";
 
 	await signUpAndVerify(page, email, password);
@@ -102,6 +130,7 @@ test("should load beginner samples and keep after reload", async ({ page }) => {
 
 test("should reorder experiences and keep new order after reload", async ({ page }) => {
 	const email = uniqueEmail("editor-order");
+	createdEmails.push(email);
 	const password = "password123";
 
 	await signUpAndVerify(page, email, password);
