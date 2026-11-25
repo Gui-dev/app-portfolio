@@ -514,4 +514,33 @@ describe("dashboard actions", () => {
 		if (result.ok) return;
 		expect(result.fieldErrors?.experiences || result.error).toBeTruthy();
 	});
+
+	it("should revalidate a published profile after a content edit", async () => {
+		await seedUser();
+		await saveProfileDraft(makeDraft({ slug: "bruce-wayne" }));
+		expect((await publishProfile()).ok).toBe(true);
+		revalidatePath.mockClear();
+
+		const result = await saveProfileDraft(
+			makeDraft({ slug: "bruce-wayne", headline: "Novo headline" }),
+		);
+		expect(result.ok).toBe(true);
+		expect(revalidatePath).toHaveBeenCalledWith("/bruce-wayne");
+		expect(revalidatePath).toHaveBeenCalledWith("/explore");
+		expect(revalidatePath).not.toHaveBeenCalledWith("/sitemap.xml");
+	});
+
+	it("should revalidate both slugs when a published profile changes slug", async () => {
+		await seedUser();
+		await saveProfileDraft(makeDraft({ slug: "old-slug" }));
+		expect((await publishProfile()).ok).toBe(true);
+		revalidatePath.mockClear();
+
+		const result = await saveProfileDraft(makeDraft({ slug: "new-slug" }));
+		expect(result.ok).toBe(true);
+		expect(revalidatePath).toHaveBeenCalledWith("/old-slug");
+		expect(revalidatePath).toHaveBeenCalledWith("/new-slug");
+		expect(revalidatePath).toHaveBeenCalledWith("/explore");
+		expect(revalidatePath).toHaveBeenCalledWith("/sitemap.xml");
+	});
 });

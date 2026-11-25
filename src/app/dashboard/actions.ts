@@ -196,7 +196,7 @@ export async function saveProfileDraft(input: ProfileDraft): Promise<SaveProfile
 	}
 
 	let result:
-		| { ok: true; profileId: string }
+		| { ok: true; profileId: string; oldSlug: string | null; slugChanged: boolean }
 		| { ok: false; fieldErrors?: ActionFieldErrors; error?: string };
 	try {
 		result = await db.transaction(async (tx) => {
@@ -315,7 +315,12 @@ export async function saveProfileDraft(input: ProfileDraft): Promise<SaveProfile
 				);
 			}
 
-			return { ok: true as const, profileId: profile.id };
+			return {
+				ok: true as const,
+				profileId: profile.id,
+				oldSlug,
+				slugChanged: nextSlug !== oldSlug,
+			};
 		});
 	} catch (error) {
 		if (isUniqueViolation(error)) {
@@ -335,6 +340,18 @@ export async function saveProfileDraft(input: ProfileDraft): Promise<SaveProfile
 		},
 	});
 	if (!saved) return { ok: false, error: "Perfil não encontrado." };
+
+	if (saved.isPublished && saved.slug) {
+		revalidatePath(`/${saved.slug}`);
+		if (result.slugChanged && result.oldSlug) {
+			revalidatePath(`/${result.oldSlug}`);
+		}
+		revalidatePath("/explore");
+		if (result.slugChanged) {
+			revalidatePath("/sitemap.xml");
+		}
+	}
+
 	return { ok: true, profile: saved };
 }
 

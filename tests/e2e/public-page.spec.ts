@@ -1,0 +1,90 @@
+import { expect, test } from "@playwright/test";
+import {
+	createPublishedProfile,
+	deleteUsers,
+	login,
+	signUpAndVerify,
+	uniqueSlug,
+} from "./helpers/auth";
+import { uniqueEmail } from "./helpers/users";
+
+const createdEmails: string[] = [];
+
+test.afterEach(() => deleteUsers(createdEmails));
+
+test("should publish a draft and expose it at /slug", async ({ page }) => {
+	const email = uniqueEmail("public-publish");
+	createdEmails.push(email);
+	const slug = uniqueSlug("pub");
+
+	await createPublishedProfile(page, {
+		email,
+		slug,
+		headline: "CEO & Filantropo",
+		skills: ["Next.js", "Estratégia"],
+	});
+
+	const response = await page.goto(`/${slug}`);
+	expect(response?.status()).toBe(200);
+	await expect(page.getByRole("heading", { name: "Bruce Wayne" })).toBeVisible();
+	await expect(page.getByText("CEO & Filantropo")).toBeVisible();
+	const skills = page.getByRole("list", { name: "Habilidades" });
+	await expect(skills).toContainText("Next.js");
+	await expect(skills).toContainText("Estratégia");
+});
+
+test("should return 404 for a draft slug", async ({ page }) => {
+	const email = uniqueEmail("public-draft");
+	createdEmails.push(email);
+	const slug = uniqueSlug("draft");
+
+	await signUpAndVerify(page, email, "password123");
+	await login(page, email, "password123");
+	await page.getByLabel("Nome Completo").fill("Bruce Wayne");
+	await page.getByLabel("Slug Público (/seunome)").fill(slug);
+	await expect(page.getByText("Rascunho sincronizado")).toBeVisible();
+
+	const response = await page.goto(`/${slug}`);
+	expect(response?.status()).toBe(404);
+	await expect(page.getByRole("heading", { name: "Página não encontrada" })).toBeVisible();
+	await expect(page.getByRole("link", { name: "Voltar para o início" })).toHaveAttribute(
+		"href",
+		"/",
+	);
+});
+
+test("should reflect an edit after revalidation", async ({ page }) => {
+	const email = uniqueEmail("public-revalidate");
+	createdEmails.push(email);
+	const slug = uniqueSlug("rev");
+
+	await createPublishedProfile(page, { email, slug, headline: "Headline Antigo" });
+
+	await page.goto(`/${slug}`);
+	await expect(page.getByText("Headline Antigo")).toBeVisible();
+
+	await page.goto("/dashboard");
+	await page.getByLabel("Cargo / Headline").fill("Headline Novo");
+	await expect(page.getByText("Rascunho sincronizado")).toBeVisible();
+
+	await page.goto(`/${slug}`);
+	await page.reload();
+	await expect(page.getByText("Headline Novo")).toBeVisible();
+	await expect(page.getByText("Headline Antigo")).toHaveCount(0);
+});
+
+test("should be reachable from the landing demo link", async ({ page }) => {
+	const email = uniqueEmail("public-demo");
+	createdEmails.push(email);
+
+	await createPublishedProfile(page, {
+		email,
+		slug: "bruce-wayne",
+		headline: "CEO & Filantropo",
+	});
+
+	await page.goto("/");
+	await page.getByRole("link", { name: "Ver demo" }).click();
+	await expect(page).toHaveURL(/\/bruce-wayne/);
+	await expect(page.getByRole("heading", { name: "Bruce Wayne" })).toBeVisible();
+});
