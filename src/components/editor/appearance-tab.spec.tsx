@@ -1,11 +1,27 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
+import { type ReactElement, useState } from "react";
 import { describe, expect, it } from "vitest";
+import type { ColorMode, Template } from "@/lib/db/schema";
 import { AppearanceTab } from "./appearance-tab";
+
+function ControlledAppearanceTab(): ReactElement {
+	const [template, setTemplate] = useState<Template>("modern");
+	const [colorMode, setColorMode] = useState<ColorMode>("dark");
+
+	return (
+		<AppearanceTab
+			colorMode={colorMode}
+			onColorModeChange={setColorMode}
+			onTemplateChange={setTemplate}
+			template={template}
+		/>
+	);
+}
 
 describe("AppearanceTab", () => {
 	it("should render the heading, the description, and both section labels", () => {
-		render(<AppearanceTab />);
+		render(<ControlledAppearanceTab />);
 
 		expect(
 			screen.getByRole("heading", { name: "Personalização Visual do Portfólio" }),
@@ -20,7 +36,7 @@ describe("AppearanceTab", () => {
 	});
 
 	it("should render three template radios with Modern checked and a single Ativo badge in Modern", () => {
-		render(<AppearanceTab />);
+		render(<ControlledAppearanceTab />);
 
 		const minimal = screen.getByRole("radio", { name: /Minimal/ });
 		const developer = screen.getByRole("radio", { name: /Developer/ });
@@ -38,7 +54,7 @@ describe("AppearanceTab", () => {
 
 	it("should select Minimal, uncheck Modern, and move Ativo into the Minimal card", async () => {
 		const user = userEvent.setup();
-		render(<AppearanceTab />);
+		render(<ControlledAppearanceTab />);
 
 		const minimal = screen.getByRole("radio", { name: /Minimal/ });
 		const modern = screen.getByRole("radio", { name: /Modern/ });
@@ -54,7 +70,7 @@ describe("AppearanceTab", () => {
 
 	it("should render color mode radios with Dark checked by default and switch to Light", async () => {
 		const user = userEvent.setup();
-		render(<AppearanceTab />);
+		render(<ControlledAppearanceTab />);
 
 		const light = screen.getByRole("radio", { name: /Light Mode/ });
 		const dark = screen.getByRole("radio", { name: /Dark Mode/ });
@@ -69,7 +85,7 @@ describe("AppearanceTab", () => {
 
 	it("should keep color mode independent when changing template", async () => {
 		const user = userEvent.setup();
-		render(<AppearanceTab />);
+		render(<ControlledAppearanceTab />);
 
 		const light = screen.getByRole("radio", { name: /Light Mode/ });
 		await user.click(light);

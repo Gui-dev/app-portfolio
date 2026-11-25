@@ -168,6 +168,55 @@ test("should reorder experiences and keep new order after reload", async ({ page
 	).toHaveValue("Primeiro");
 });
 
+test("should change the template and persist it after reload", async ({ page }) => {
+	const email = uniqueEmail("editor-template");
+	createdEmails.push(email);
+	const password = "password123";
+
+	await signUpAndVerify(page, email, password);
+	await login(page, email, password);
+
+	await page.getByRole("tab", { name: "Aparência" }).click();
+	await page.getByText("Developer", { exact: true }).click();
+
+	const preview = page.locator("[data-template]").first();
+	await expect(preview).toHaveAttribute("data-template", "developer");
+	await expect(preview).toHaveCSS("--accent", "#10B981");
+	await expect(page.getByText("Rascunho sincronizado")).toBeVisible();
+
+	await page.reload();
+	await page.getByRole("tab", { name: "Aparência" }).click();
+
+	await expect(page.getByRole("radio", { name: /Developer/ })).toBeChecked();
+	await expect(page.locator("[data-template]").first()).toHaveAttribute(
+		"data-template",
+		"developer",
+	);
+});
+
+test("should switch the preview to light mode and persist it", async ({ page }) => {
+	const email = uniqueEmail("editor-preview-theme");
+	createdEmails.push(email);
+	const password = "password123";
+
+	await signUpAndVerify(page, email, password);
+	await login(page, email, password);
+
+	await page.getByRole("button", { name: "Alternar tema da prévia" }).click();
+
+	const preview = page.locator("[data-mode]").first();
+	await expect(preview).toHaveAttribute("data-mode", "light");
+	await expect(page.getByText("Rascunho sincronizado")).toBeVisible();
+
+	await page.reload();
+
+	await expect(page.locator("[data-mode]").first()).toHaveAttribute("data-mode", "light");
+	await expect(page.getByRole("button", { name: "Alternar tema da prévia" })).toHaveAttribute(
+		"aria-pressed",
+		"true",
+	);
+});
+
 test("should redirect to login when unauthenticated", async ({ page }) => {
 	await page.goto("/dashboard");
 	await expect(page).toHaveURL(/\/login/);

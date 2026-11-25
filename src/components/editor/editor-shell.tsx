@@ -3,18 +3,22 @@
 import * as TabsPrimitive from "@radix-ui/react-tabs";
 import { type ReactElement, useCallback, useMemo, useState, useTransition } from "react";
 import { publishProfile, saveProfileDraft, unpublishProfile } from "@/app/dashboard/actions";
-import type { ProfileWithRelations } from "@/lib/db/schema";
+import type { ColorMode, ProfileWithRelations, Template } from "@/lib/db/schema";
 import type { ProfileDraft } from "@/lib/validation/profile";
 import { AppearanceTab } from "./appearance-tab";
 import { EditorActionBar } from "./editor-action-bar";
 import { EditorHeader } from "./editor-header";
 import { ExperienceTab } from "./experience-tab";
+import { PreviewPanel } from "./preview-panel";
 import { ProfileTab } from "./profile-tab";
 import { ProjectsTab } from "./projects-tab";
 import { SkillsTab } from "./skills-tab";
 import { EDITOR_TABS, type EditorTabId, TabNav } from "./tab-nav";
 import { TabPanel } from "./tab-panel";
 import { useAutosave } from "./use-autosave";
+import { usePreviewProfile } from "./use-preview-profile";
+
+type MobileView = "edit" | "preview";
 
 function toDraft(profile: ProfileWithRelations): ProfileDraft {
 	return {
@@ -51,6 +55,7 @@ function toDraft(profile: ProfileWithRelations): ProfileDraft {
 
 export function EditorShell({ profile }: { profile: ProfileWithRelations }): ReactElement {
 	const [activeTab, setActiveTab] = useState<EditorTabId>("profile");
+	const [mobileView, setMobileView] = useState<MobileView>("edit");
 	const [formVersion, setFormVersion] = useState(0);
 	const [initialDraft, setInitialDraft] = useState<ProfileDraft>(() => toDraft(profile));
 	const [draft, setDraft] = useState<ProfileDraft>(() => toDraft(profile));
@@ -75,6 +80,7 @@ export function EditorShell({ profile }: { profile: ProfileWithRelations }): Rea
 	const { status, isDirty } = useAutosave({ values: draft, save, delay: 800 });
 
 	const publicSlug = draft.slug?.trim() || profile.slug || "seu-slug";
+	const previewProfile = usePreviewProfile(profile, draft);
 
 	const onPublish = () => {
 		startPublish(async () => {
@@ -109,6 +115,20 @@ export function EditorShell({ profile }: { profile: ProfileWithRelations }): Rea
 		});
 	};
 
+	const onProfileValuesChange = useCallback((values: ProfileDraft) => {
+		setDraft((current) => ({
+			...current,
+			bio: values.bio,
+			contactEmail: values.contactEmail,
+			fullName: values.fullName,
+			githubUrl: values.githubUrl,
+			headline: values.headline,
+			linkedinUrl: values.linkedinUrl,
+			location: values.location,
+			monogramStyle: values.monogramStyle,
+			slug: values.slug,
+		}));
+	}, []);
 	const onExperiencesChange = useCallback((experiences: ProfileDraft["experiences"]) => {
 		setDraft((current) =>
 			JSON.stringify(current.experiences) === JSON.stringify(experiences)
@@ -128,65 +148,114 @@ export function EditorShell({ profile }: { profile: ProfileWithRelations }): Rea
 			JSON.stringify(current.skills) === JSON.stringify(skills) ? current : { ...current, skills },
 		);
 	}, []);
+	const onTemplateChange = useCallback((template: Template) => {
+		setDraft((current) => (current.template === template ? current : { ...current, template }));
+	}, []);
+	const onColorModeChange = useCallback((colorMode: ColorMode) => {
+		setDraft((current) => (current.colorMode === colorMode ? current : { ...current, colorMode }));
+	}, []);
 
 	const profileTab = useMemo(
 		() => (
 			<ProfileTab
 				defaultValues={initialDraft}
 				key={`profile-${formVersion}`}
-				onValuesChange={setDraft}
+				onValuesChange={onProfileValuesChange}
 				serverFieldErrors={serverFieldErrors}
 			/>
 		),
-		[formVersion, initialDraft, serverFieldErrors],
+		[formVersion, initialDraft, onProfileValuesChange, serverFieldErrors],
 	);
 
 	return (
-		<>
-			<EditorHeader publicSlug={publicSlug} />
-			<TabsPrimitive.Root
-				className="flex min-h-0 w-full flex-1 flex-col"
-				onValueChange={(next) => setActiveTab(next as EditorTabId)}
-				value={activeTab}
-			>
-				<TabNav />
-				{EDITOR_TABS.map((tab) => (
-					<TabPanel key={tab.id} value={tab.id}>
-						{tab.id === "profile" ? (
-							profileTab
-						) : tab.id === "experience" ? (
-							<ExperienceTab
-								defaultValues={initialDraft.experiences}
-								key={`experience-${formVersion}`}
-								onValuesChange={onExperiencesChange}
-								serverFieldErrors={serverFieldErrors}
-							/>
-						) : tab.id === "projects" ? (
-							<ProjectsTab
-								defaultValues={initialDraft.projects}
-								key={`projects-${formVersion}`}
-								onValuesChange={onProjectsChange}
-								serverFieldErrors={serverFieldErrors}
-							/>
-						) : tab.id === "skills" ? (
-							<SkillsTab
-								defaultValues={initialDraft.skills}
-								key={`skills-${formVersion}`}
-								onValuesChange={onSkillsChange}
-							/>
-						) : (
-							<AppearanceTab />
-						)}
-					</TabPanel>
-				))}
-			</TabsPrimitive.Root>
-			<EditorActionBar
-				isDirty={isDirty}
-				isPublished={isPublished}
-				onPublish={onPublish}
-				publishPending={publishPending}
-				status={status}
-			/>
-		</>
+		<div className="flex h-full min-h-0 flex-col bg-bg" data-mobile-view={mobileView}>
+			<div className="flex shrink-0 items-center justify-center gap-2 border-b border-border bg-surface-2 px-4 py-2 lg:hidden">
+				<button
+					aria-pressed={mobileView === "edit"}
+					className={`rounded-lg px-4 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+						mobileView === "edit" ? "bg-accent-strong text-fg" : "text-muted"
+					}`}
+					onClick={() => setMobileView("edit")}
+					type="button"
+				>
+					Editar
+				</button>
+				<button
+					aria-pressed={mobileView === "preview"}
+					className={`rounded-lg px-4 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent ${
+						mobileView === "preview" ? "bg-accent-strong text-fg" : "text-muted"
+					}`}
+					onClick={() => setMobileView("preview")}
+					type="button"
+				>
+					Prévia
+				</button>
+			</div>
+
+			<div className="flex min-h-0 flex-1 flex-col lg:flex-row">
+				<aside
+					className={`min-h-0 w-full border-r border-border lg:flex lg:w-[55%] lg:flex-col ${
+						mobileView === "edit" ? "flex flex-col" : "hidden"
+					}`}
+				>
+					<EditorHeader publicSlug={publicSlug} />
+					<TabsPrimitive.Root
+						className="flex min-h-0 w-full flex-1 flex-col"
+						onValueChange={(next) => setActiveTab(next as EditorTabId)}
+						value={activeTab}
+					>
+						<TabNav />
+						{EDITOR_TABS.map((tab) => (
+							<TabPanel key={tab.id} value={tab.id}>
+								{tab.id === "profile" ? (
+									profileTab
+								) : tab.id === "experience" ? (
+									<ExperienceTab
+										defaultValues={initialDraft.experiences}
+										key={`experience-${formVersion}`}
+										onValuesChange={onExperiencesChange}
+										serverFieldErrors={serverFieldErrors}
+									/>
+								) : tab.id === "projects" ? (
+									<ProjectsTab
+										defaultValues={initialDraft.projects}
+										key={`projects-${formVersion}`}
+										onValuesChange={onProjectsChange}
+										serverFieldErrors={serverFieldErrors}
+									/>
+								) : tab.id === "skills" ? (
+									<SkillsTab
+										defaultValues={initialDraft.skills}
+										key={`skills-${formVersion}`}
+										onValuesChange={onSkillsChange}
+									/>
+								) : (
+									<AppearanceTab
+										colorMode={draft.colorMode}
+										onColorModeChange={onColorModeChange}
+										onTemplateChange={onTemplateChange}
+										template={draft.template}
+									/>
+								)}
+							</TabPanel>
+						))}
+					</TabsPrimitive.Root>
+					<EditorActionBar
+						isDirty={isDirty}
+						isPublished={isPublished}
+						onPublish={onPublish}
+						publishPending={publishPending}
+						status={status}
+					/>
+				</aside>
+				<div className={`min-h-0 flex-1 ${mobileView === "preview" ? "block" : "hidden"} lg:block`}>
+					<PreviewPanel
+						onColorModeChange={onColorModeChange}
+						profile={previewProfile}
+						publicSlug={publicSlug}
+					/>
+				</div>
+			</div>
+		</div>
 	);
 }

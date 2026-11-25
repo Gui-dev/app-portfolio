@@ -227,6 +227,19 @@ describe("dashboard actions", () => {
 		expect(first.slug).toBeTruthy();
 	});
 
+	it("should return the same profile for concurrent ensureProfileForUser calls", async () => {
+		const u = await seedUser({
+			email: "concurrent.user@example.com",
+			name: "Concurrent User",
+		});
+		const [first, second] = await Promise.all([
+			ensureProfileForUser(u.id, u.email, u.name),
+			ensureProfileForUser(u.id, u.email, u.name),
+		]);
+
+		expect(first.id).toBe(second.id);
+	});
+
 	it("should suffix slug on collision in ensureProfileForUser", async () => {
 		const owner = await seedUser({ id: "owner", email: "owner@example.com", name: "Owner" });
 		await db.insert(profiles).values({

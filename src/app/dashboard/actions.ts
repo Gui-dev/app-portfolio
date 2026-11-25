@@ -133,13 +133,16 @@ export async function ensureProfileForUser(
 		throw new Error("Unable to allocate slug");
 	}
 
-	await db.insert(profiles).values({
-		userId,
-		slug,
-		fullName: name?.trim() || null,
-		contactEmail: email,
-		isPublished: false,
-	});
+	await db
+		.insert(profiles)
+		.values({
+			userId,
+			slug,
+			fullName: name?.trim() || null,
+			contactEmail: email,
+			isPublished: false,
+		})
+		.onConflictDoNothing({ target: profiles.userId });
 
 	const created = await loadProfileByUserId(userId);
 	if (!created) {

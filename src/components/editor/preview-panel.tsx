@@ -1,14 +1,24 @@
 "use client";
 
-import { ExternalLink, LayoutTemplate, Lock, Monitor, Moon, Smartphone, Sun } from "lucide-react";
+import { Download, ExternalLink, Lock, Monitor, Moon, Smartphone, Sun } from "lucide-react";
 import { type ReactElement, useState } from "react";
+import { PortfolioPage } from "@/components/portfolio/portfolio-page";
+import type { ColorMode, ProfileWithRelations } from "@/lib/db/schema";
+import { TEMPLATES } from "@/lib/template";
 
 type Viewport = "desktop" | "mobile";
-type PreviewTheme = "dark" | "light";
 
-export function PreviewPanel({ publicSlug }: { publicSlug: string }): ReactElement {
+export function PreviewPanel({
+	profile,
+	publicSlug,
+	onColorModeChange,
+}: {
+	profile: ProfileWithRelations;
+	publicSlug: string;
+	onColorModeChange?: (mode: ColorMode) => void;
+}): ReactElement {
 	const [viewport, setViewport] = useState<Viewport>("desktop");
-	const [previewTheme, setPreviewTheme] = useState<PreviewTheme>("dark");
+	const isLight = profile.colorMode === "light";
 
 	return (
 		<aside aria-label="Prévia do portfólio" className="flex h-full flex-col bg-canvas">
@@ -18,7 +28,7 @@ export function PreviewPanel({ publicSlug }: { publicSlug: string }): ReactEleme
 						Prévia ao vivo
 					</span>
 					<span className="rounded-md bg-accent/10 px-2 py-0.5 font-mono text-[11px] font-medium leading-[16.5px] text-accent">
-						Modern
+						{TEMPLATES[profile.template].name}
 					</span>
 				</div>
 				<div role="toolbar" aria-label="Controles da prévia" className="flex items-center gap-2">
@@ -53,16 +63,24 @@ export function PreviewPanel({ publicSlug }: { publicSlug: string }): ReactEleme
 					<button
 						type="button"
 						aria-label="Alternar tema da prévia"
-						aria-pressed={previewTheme === "light"}
-						onClick={() => setPreviewTheme((current) => (current === "dark" ? "light" : "dark"))}
+						aria-pressed={isLight}
+						onClick={() => onColorModeChange?.(isLight ? "dark" : "light")}
 						className="flex items-center gap-1.5 rounded-xl border border-border bg-inset px-3 py-1.5 text-xs font-medium leading-4 text-fg-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
 					>
-						{previewTheme === "dark" ? (
-							<Moon aria-hidden="true" className="size-3 text-accent-soft" />
-						) : (
+						{isLight ? (
 							<Sun aria-hidden="true" className="size-3 text-accent-soft" />
+						) : (
+							<Moon aria-hidden="true" className="size-3 text-accent-soft" />
 						)}
-						<span>{previewTheme === "dark" ? "Escuro" : "Claro"}</span>
+						<span>{isLight ? "Claro" : "Escuro"}</span>
+					</button>
+					<button
+						type="button"
+						disabled
+						className="inline-flex items-center gap-1.5 rounded-xl border border-border bg-inset px-3 py-1.5 text-xs font-medium leading-4 text-fg-dim disabled:cursor-not-allowed disabled:opacity-60"
+					>
+						<Download aria-hidden="true" className="size-3" />
+						Baixar PDF
 					</button>
 				</div>
 			</div>
@@ -73,7 +91,7 @@ export function PreviewPanel({ publicSlug }: { publicSlug: string }): ReactEleme
 						viewport === "desktop" ? "w-full" : "w-full max-w-[390px]"
 					}`}
 				>
-					<div className="flex h-12 items-center gap-2 border-b border-border bg-surface-3 px-[14px] py-[10px]">
+					<div className="flex h-12 shrink-0 items-center gap-2 border-b border-border bg-surface-3 px-[14px] py-[10px]">
 						<div className="flex shrink-0 items-center gap-1.5">
 							<span aria-hidden="true" className="size-2.5 rounded-full bg-danger-soft" />
 							<span aria-hidden="true" className="size-2.5 rounded-full bg-warning" />
@@ -90,9 +108,8 @@ export function PreviewPanel({ publicSlug }: { publicSlug: string }): ReactEleme
 						</div>
 						<ExternalLink aria-hidden="true" className="size-2.5 shrink-0 text-muted" />
 					</div>
-					<div className="flex min-h-0 flex-1 flex-col items-center justify-center gap-3 bg-bg p-6">
-						<LayoutTemplate aria-hidden="true" className="size-8 text-muted" />
-						<p className="text-sm text-muted">A prévia do portfólio aparecerá aqui.</p>
+					<div className="min-h-0 flex-1 overflow-auto bg-bg">
+						<PortfolioPage profile={profile} />
 					</div>
 				</div>
 			</div>

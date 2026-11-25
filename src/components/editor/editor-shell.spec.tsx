@@ -53,7 +53,7 @@ describe("EditorShell", () => {
 	it("should render the action bar with the publish button", () => {
 		render(<EditorShell profile={makeProfile()} />);
 
-		expect(screen.getByRole("contentinfo")).toBeInTheDocument();
+		expect(screen.getAllByRole("contentinfo")).toHaveLength(2);
 		expect(screen.getByRole("button", { name: "Salvar e Publicar" })).toBeInTheDocument();
 	});
 
@@ -140,5 +140,61 @@ describe("EditorShell", () => {
 			"true",
 		);
 		expect(screen.queryByLabelText("Nome Completo")).not.toBeInTheDocument();
+	});
+
+	it("should update the live preview when the name changes", async () => {
+		const user = userEvent.setup();
+		render(<EditorShell profile={makeProfile()} />);
+
+		const nameInput = screen.getByLabelText("Nome Completo");
+		await user.clear(nameInput);
+		await user.type(nameInput, "Maria Silva");
+
+		expect(screen.getByRole("heading", { name: "Maria Silva" })).toBeInTheDocument();
+	});
+
+	it("should render the mobile Edit/Preview toggle and switch the workspace view", async () => {
+		const user = userEvent.setup();
+		const { container } = render(<EditorShell profile={makeProfile()} />);
+		const workspace = container.querySelector("[data-mobile-view]");
+		const editButton = screen.getByRole("button", { name: "Editar" });
+		const previewButton = screen.getByRole("button", { name: "Prévia" });
+
+		expect(editButton).toHaveAttribute("aria-pressed", "true");
+		expect(previewButton).toHaveAttribute("aria-pressed", "false");
+		expect(workspace).toHaveAttribute("data-mobile-view", "edit");
+
+		await user.click(previewButton);
+
+		expect(editButton).toHaveAttribute("aria-pressed", "false");
+		expect(previewButton).toHaveAttribute("aria-pressed", "true");
+		expect(workspace).toHaveAttribute("data-mobile-view", "preview");
+		expect(screen.getByRole("complementary", { name: "Prévia do portfólio" })).toBeInTheDocument();
+	});
+
+	it("should keep the selected template when the profile form changes", async () => {
+		const user = userEvent.setup();
+		render(<EditorShell profile={makeProfile()} />);
+
+		await user.click(screen.getByRole("tab", { name: "Aparência" }));
+		await user.click(screen.getByRole("radio", { name: /Developer/ }));
+		await user.click(screen.getByRole("tab", { name: "Perfil" }));
+
+		const nameInput = screen.getByLabelText("Nome Completo");
+		await user.clear(nameInput);
+		await user.type(nameInput, "Maria");
+
+		const preview = screen.getByRole("heading", { name: "Maria" }).closest("article");
+		expect(preview).toHaveAttribute("data-template", "developer");
+	});
+
+	it("should not change the preview when the editor theme is toggled", async () => {
+		const user = userEvent.setup();
+		const { container } = render(<EditorShell profile={makeProfile()} />);
+		const preview = container.querySelector("[data-template]");
+
+		await user.click(screen.getByRole("button", { name: "Alternar tema do editor" }));
+
+		expect(preview).toHaveAttribute("data-mode", "dark");
 	});
 });
