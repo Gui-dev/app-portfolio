@@ -53,7 +53,9 @@ test("should return 404 for a draft slug", async ({ page }) => {
 	);
 });
 
-test("should reflect an edit after revalidation", async ({ page }) => {
+// ISR invalidation itself is asserted in actions.integration.spec.ts; dev
+// renders on demand, so this only proves the published edit is visible.
+test("should show a published edit on the public page", async ({ page }) => {
 	const email = uniqueEmail("public-revalidate");
 	createdEmails.push(email);
 	const slug = uniqueSlug("rev");
@@ -73,15 +75,18 @@ test("should reflect an edit after revalidation", async ({ page }) => {
 	await expect(page.getByText("Headline Antigo")).toHaveCount(0);
 });
 
-test("should be reachable from the landing demo link", async ({ page }) => {
-	const email = uniqueEmail("public-demo");
-	createdEmails.push(email);
-
-	await createPublishedProfile(page, {
-		email,
-		slug: "bruce-wayne",
-		headline: "CEO & Filantropo",
-	});
+test("should be reachable from the landing demo link", async ({ page, request }) => {
+	// Task 14 seeds /bruce-wayne; only create it when the seed is absent.
+	const seeded = await request.get("/bruce-wayne");
+	if (seeded.status() !== 200) {
+		const email = uniqueEmail("public-demo");
+		createdEmails.push(email);
+		await createPublishedProfile(page, {
+			email,
+			slug: "bruce-wayne",
+			headline: "CEO & Filantropo",
+		});
+	}
 
 	await page.goto("/");
 	await page.getByRole("link", { name: "Ver demo" }).click();

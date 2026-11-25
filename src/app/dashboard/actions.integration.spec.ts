@@ -515,6 +515,40 @@ describe("dashboard actions", () => {
 		expect(result.fieldErrors?.experiences || result.error).toBeTruthy();
 	});
 
+	it("should not revalidate while the profile is a draft", async () => {
+		await seedUser();
+		await saveProfileDraft(makeDraft({ slug: "draft-slug" }));
+		revalidatePath.mockClear();
+
+		const contentEdit = await saveProfileDraft(
+			makeDraft({ slug: "draft-slug", headline: "Novo headline" }),
+		);
+		expect(contentEdit.ok).toBe(true);
+		expect(revalidatePath).not.toHaveBeenCalled();
+
+		const slugChange = await saveProfileDraft(makeDraft({ slug: "other-draft-slug" }));
+		expect(slugChange.ok).toBe(true);
+		expect(revalidatePath).not.toHaveBeenCalled();
+	});
+
+	it("should revalidate historical slugs on publish and unpublish", async () => {
+		await seedUser();
+		await saveProfileDraft(makeDraft({ slug: "first-slug" }));
+		await saveProfileDraft(makeDraft({ slug: "second-slug" }));
+
+		revalidatePath.mockClear();
+		const published = await publishProfile();
+		expect(published.ok).toBe(true);
+		expect(revalidatePath).toHaveBeenCalledWith("/second-slug");
+		expect(revalidatePath).toHaveBeenCalledWith("/first-slug");
+
+		revalidatePath.mockClear();
+		const unpublished = await unpublishProfile();
+		expect(unpublished.ok).toBe(true);
+		expect(revalidatePath).toHaveBeenCalledWith("/second-slug");
+		expect(revalidatePath).toHaveBeenCalledWith("/first-slug");
+	});
+
 	it("should revalidate a published profile after a content edit", async () => {
 		await seedUser();
 		await saveProfileDraft(makeDraft({ slug: "bruce-wayne" }));

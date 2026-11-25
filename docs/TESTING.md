@@ -12,6 +12,7 @@ How testing works in this repository. Project-specific conventions on top of the
 - Unit tests never touch the database, network, filesystem, or a real clock. Network is mocked with MSW.
 - Integration tests use the real local Postgres database `foliocraft_test` and live in `*.integration.spec.ts` files.
 - E2E tests run with Playwright against the real local stack (web on `:3000`, Mailpit API on `:8025`).
+- Playwright uses `workers: 1`: specs share the dev server and Mailpit, and `fullyParallel: false` alone still runs spec files concurrently, which caused signup timeouts.
 
 ## Commands
 

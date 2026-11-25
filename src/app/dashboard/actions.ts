@@ -95,6 +95,16 @@ async function loadProfileByUserId(userId: string): Promise<ProfileWithRelations
 	return getProfileForUser(userId);
 }
 
+async function revalidateHistoricalSlugs(profileId: string): Promise<void> {
+	const rows = await db
+		.select({ slug: slugHistory.slug })
+		.from(slugHistory)
+		.where(eq(slugHistory.profileId, profileId));
+	for (const row of rows) {
+		revalidatePath(`/${row.slug}`);
+	}
+}
+
 async function nextAvailableSlug(base: string, forProfileId?: string): Promise<string | null> {
 	const normalized = normalizeSlug(base);
 	if (!normalized) return null;
@@ -385,6 +395,7 @@ export async function publishProfile(): Promise<PublishProfileResult> {
 	}
 
 	revalidatePath(`/${slug}`);
+	await revalidateHistoricalSlugs(profile.id);
 	revalidatePath("/explore");
 	revalidatePath("/sitemap.xml");
 
@@ -407,6 +418,7 @@ export async function unpublishProfile(): Promise<PublishProfileResult> {
 	if (slug) {
 		revalidatePath(`/${slug}`);
 	}
+	await revalidateHistoricalSlugs(profile.id);
 	revalidatePath("/explore");
 	revalidatePath("/sitemap.xml");
 
