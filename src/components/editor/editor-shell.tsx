@@ -109,11 +109,31 @@ export function EditorShell({ profile }: { profile: ProfileWithRelations }): Rea
 		});
 	};
 
+	const onExperiencesChange = useCallback((experiences: ProfileDraft["experiences"]) => {
+		setDraft((current) =>
+			JSON.stringify(current.experiences) === JSON.stringify(experiences)
+				? current
+				: { ...current, experiences },
+		);
+	}, []);
+	const onProjectsChange = useCallback((projects: ProfileDraft["projects"]) => {
+		setDraft((current) =>
+			JSON.stringify(current.projects) === JSON.stringify(projects)
+				? current
+				: { ...current, projects },
+		);
+	}, []);
+	const onSkillsChange = useCallback((skills: ProfileDraft["skills"]) => {
+		setDraft((current) =>
+			JSON.stringify(current.skills) === JSON.stringify(skills) ? current : { ...current, skills },
+		);
+	}, []);
+
 	const profileTab = useMemo(
 		() => (
 			<ProfileTab
 				defaultValues={initialDraft}
-				key={formVersion}
+				key={`profile-${formVersion}`}
 				onValuesChange={setDraft}
 				serverFieldErrors={serverFieldErrors}
 			/>
@@ -135,11 +155,25 @@ export function EditorShell({ profile }: { profile: ProfileWithRelations }): Rea
 						{tab.id === "profile" ? (
 							profileTab
 						) : tab.id === "experience" ? (
-							<ExperienceTab />
+							<ExperienceTab
+								defaultValues={initialDraft.experiences}
+								key={`experience-${formVersion}`}
+								onValuesChange={onExperiencesChange}
+								serverFieldErrors={serverFieldErrors}
+							/>
 						) : tab.id === "projects" ? (
-							<ProjectsTab />
+							<ProjectsTab
+								defaultValues={initialDraft.projects}
+								key={`projects-${formVersion}`}
+								onValuesChange={onProjectsChange}
+								serverFieldErrors={serverFieldErrors}
+							/>
 						) : tab.id === "skills" ? (
-							<SkillsTab />
+							<SkillsTab
+								defaultValues={initialDraft.skills}
+								key={`skills-${formVersion}`}
+								onValuesChange={onSkillsChange}
+							/>
 						) : (
 							<AppearanceTab />
 						)}

@@ -1,129 +1,85 @@
 import { render, screen, within } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
+import type { ProfileDraft } from "@/lib/validation/profile";
 import { ExperienceTab } from "./experience-tab";
 
-describe("ExperienceTab", () => {
-	it("should render the section heading, description and helper banner", () => {
-		render(<ExperienceTab />);
+type Experience = ProfileDraft["experiences"][number];
 
+function makeExperience(overrides: Partial<Experience> = {}): Experience {
+	return {
+		kind: "formal",
+		role: "Desenvolvedor",
+		company: "Empresa",
+		period: "2024 — Atual",
+		description: "Descrição",
+		sortOrder: 0,
+		...overrides,
+	};
+}
+
+describe("ExperienceTab", () => {
+	it("should render heading and helper banner", () => {
+		render(<ExperienceTab defaultValues={[]} onValuesChange={vi.fn()} />);
 		expect(
 			screen.getByRole("heading", { name: "Experiência & Vivência Prática" }),
 		).toBeInTheDocument();
-		expect(
-			screen.getByText("Adicione empregos formais, freelas, open source ou projetos acadêmicos."),
-		).toBeInTheDocument();
 		expect(screen.getByText("Procurando o primeiro emprego na área?")).toBeInTheDocument();
-		expect(screen.getByText("Quer ver como fica na prática?")).toBeInTheDocument();
-		expect(
-			screen.getByRole("button", { name: "✨ Carregar Perfil Primeiro Emprego" }),
-		).toBeInTheDocument();
 	});
 
-	it("should render the two mock cards with their values and kinds", () => {
-		render(<ExperienceTab />);
-
-		const first = screen.getByRole("article", { name: "Experiência #01" });
-		const second = screen.getByRole("article", { name: "Experiência #02" });
-
-		expect(within(first).getByText("#01")).toBeInTheDocument();
-		expect(within(first).getByLabelText("Tipo da experiência 1")).toHaveValue("formal");
-		expect(within(first).getByLabelText("Cargo ou Papel Exercido")).toHaveValue(
-			"Senior Frontend Engineer",
-		);
-		expect(within(first).getByLabelText("Empresa, Projeto ou Instituição")).toHaveValue(
-			"Nubank (Nu Pagamentos)",
-		);
-		expect(within(first).getByLabelText("Período")).toHaveValue("2024 — Atual");
-		expect(
-			within(first).getByLabelText("Entregas e Resultados (Foque no impacto técnico)"),
-		).toHaveValue(
-			"Liderança técnica na arquitetura de micro-frontends em React/TypeScript, melhorando o Core Web Vitals (LCP) em 38% e mantendo o Design System interno.",
-		);
-
-		expect(within(second).getByText("#02")).toBeInTheDocument();
-		expect(within(second).getByLabelText("Tipo da experiência 2")).toHaveValue("formal");
-		expect(within(second).getByLabelText("Cargo ou Papel Exercido")).toHaveValue(
-			"Desenvolvedor Fullstack Pleno",
-		);
-		expect(within(second).getByLabelText("Empresa, Projeto ou Instituição")).toHaveValue("Vtex");
-		expect(within(second).getByLabelText("Período")).toHaveValue("2021 — 2024");
-	});
-
-	it("should add a formal experience from the Adicionar button", async () => {
+	it("should add experience of selected kind", async () => {
 		const user = userEvent.setup();
-		render(<ExperienceTab />);
-
-		await user.click(screen.getByRole("button", { name: "Adicionar" }));
-
-		expect(screen.getAllByRole("article")).toHaveLength(3);
-		const third = screen.getByRole("article", { name: "Experiência #03" });
-		expect(within(third).getByText("#03")).toBeInTheDocument();
-		expect(within(third).getByLabelText("Tipo da experiência 3")).toHaveValue("formal");
-		expect(within(third).getByLabelText("Cargo ou Papel Exercido")).toHaveValue("");
+		render(<ExperienceTab defaultValues={[]} onValuesChange={vi.fn()} />);
+		await user.selectOptions(
+			screen.getByLabelText("Adicionar experiência de outro tipo"),
+			"academic",
+		);
+		expect(screen.getByLabelText("Tipo da experiência 1")).toHaveValue("academic");
 	});
 
-	it("should add an experience from the kind picker", async () => {
+	it("should remove second experience and renumber", async () => {
 		const user = userEvent.setup();
-		render(<ExperienceTab />);
-
-		const picker = screen.getByLabelText("Adicionar experiência de outro tipo");
-		await user.selectOptions(picker, "freelance");
-
-		expect(screen.getAllByRole("article")).toHaveLength(3);
-		const third = screen.getByRole("article", { name: "Experiência #03" });
-		expect(within(third).getByLabelText("Tipo da experiência 3")).toHaveValue("freelance");
-		expect(picker).toHaveValue("");
-	});
-
-	it("should change the kind of an existing card", async () => {
-		const user = userEvent.setup();
-		render(<ExperienceTab />);
-
-		const kindSelect = within(
-			screen.getByRole("article", { name: "Experiência #01" }),
-		).getByLabelText("Tipo da experiência 1");
-
-		await user.selectOptions(kindSelect, "volunteer");
-
-		expect(kindSelect).toHaveValue("volunteer");
-	});
-
-	it("should remove a card and renumber the rest", async () => {
-		const user = userEvent.setup();
-		render(<ExperienceTab />);
-
-		await user.click(screen.getByRole("button", { name: "Remover experiência 01" }));
-
+		render(
+			<ExperienceTab
+				defaultValues={[
+					makeExperience({ role: "Primeiro", sortOrder: 0 }),
+					makeExperience({ role: "Segundo", sortOrder: 1 }),
+				]}
+				onValuesChange={vi.fn()}
+			/>,
+		);
+		await user.click(screen.getByRole("button", { name: "Remover experiência 02" }));
 		expect(screen.getAllByRole("article")).toHaveLength(1);
-		const first = screen.getByRole("article", { name: "Experiência #01" });
-		expect(within(first).getByLabelText("Cargo ou Papel Exercido")).toHaveValue(
-			"Desenvolvedor Fullstack Pleno",
-		);
-		expect(within(first).getByLabelText("Empresa, Projeto ou Instituição")).toHaveValue("Vtex");
+		expect(screen.getByLabelText("Cargo ou Papel Exercido")).toHaveValue("Primeiro");
 	});
 
-	it("should load the first-job examples", async () => {
+	it("should move up/down and renumber sortOrder", async () => {
 		const user = userEvent.setup();
-		render(<ExperienceTab />);
+		const onValuesChange = vi.fn();
+		render(
+			<ExperienceTab
+				defaultValues={[
+					makeExperience({ role: "Primeiro", sortOrder: 0 }),
+					makeExperience({ role: "Segundo", sortOrder: 1 }),
+				]}
+				onValuesChange={onValuesChange}
+			/>,
+		);
+		await user.click(screen.getByRole("button", { name: "Mover Experiência #02 para cima" }));
+		const first = screen.getByRole("article", { name: "Experiência #01" });
+		expect(within(first).getByLabelText("Cargo ou Papel Exercido")).toHaveValue("Segundo");
+		const last = onValuesChange.mock.calls.at(-1)?.[0] as Experience[];
+		expect(last.map((e) => e.sortOrder)).toEqual([0, 1]);
+	});
 
-		await user.click(screen.getByRole("button", { name: "✨ Carregar Perfil Primeiro Emprego" }));
-
-		expect(screen.getAllByRole("article")).toHaveLength(5);
-		expect(
-			within(screen.getByRole("article", { name: "Experiência #03" })).getByLabelText(
-				"Tipo da experiência 3",
-			),
-		).toHaveValue("freelance");
-		expect(
-			within(screen.getByRole("article", { name: "Experiência #04" })).getByLabelText(
-				"Tipo da experiência 4",
-			),
-		).toHaveValue("open-source");
-		expect(
-			within(screen.getByRole("article", { name: "Experiência #05" })).getByLabelText(
-				"Tipo da experiência 5",
-			),
-		).toHaveValue("academic");
+	it("should show errors for missing role", async () => {
+		const user = userEvent.setup();
+		render(
+			<ExperienceTab defaultValues={[makeExperience({ role: "" })]} onValuesChange={vi.fn()} />,
+		);
+		const roleInput = screen.getByLabelText("Cargo ou Papel Exercido");
+		await user.click(roleInput);
+		await user.tab();
+		expect(await screen.findByText("Informe o cargo ou papel.")).toBeInTheDocument();
 	});
 });

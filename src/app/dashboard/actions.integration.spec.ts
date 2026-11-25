@@ -296,4 +296,205 @@ describe("dashboard actions", () => {
 		if (result.ok) return;
 		expect(result.fieldErrors?.slug).toBeTruthy();
 	});
+
+	it("should persist children with visual order", async () => {
+		await seedUser();
+		const result = await saveProfileDraft(
+			makeDraft({
+				experiences: [
+					{
+						kind: "formal",
+						role: "Segundo",
+						company: "B",
+						period: "2024",
+						description: "B",
+						sortOrder: 1,
+					},
+					{
+						kind: "freelance",
+						role: "Primeiro",
+						company: "A",
+						period: "2023",
+						description: "A",
+						sortOrder: 0,
+					},
+				],
+				projects: [
+					{
+						name: "Projeto 2",
+						description: "Dois",
+						repoUrl: "",
+						demoUrl: "",
+						tags: ["B"],
+						sortOrder: 1,
+					},
+					{
+						name: "Projeto 1",
+						description: "Um",
+						repoUrl: "",
+						demoUrl: "",
+						tags: ["A"],
+						sortOrder: 0,
+					},
+				],
+				skills: ["TypeScript", "React"],
+			}),
+		);
+
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.profile.experiences.map((e) => [e.role, e.sortOrder])).toEqual([
+			["Primeiro", 0],
+			["Segundo", 1],
+		]);
+		expect(result.profile.projects.map((p) => [p.name, p.sortOrder])).toEqual([
+			["Projeto 1", 0],
+			["Projeto 2", 1],
+		]);
+		expect(result.profile.skills.map((s) => [s.name, s.sortOrder])).toEqual([
+			["TypeScript", 0],
+			["React", 1],
+		]);
+	});
+
+	it("should persist experience kind", async () => {
+		await seedUser();
+		const result = await saveProfileDraft(
+			makeDraft({
+				experiences: [
+					{
+						kind: "open-source",
+						role: "Contribuidor",
+						company: "Comunidade",
+						period: "2024",
+						description: "OSS",
+						sortOrder: 0,
+					},
+				],
+			}),
+		);
+
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.profile.experiences[0]?.kind).toBe("open-source");
+	});
+
+	it("should delete children removed from payload", async () => {
+		await seedUser();
+		await saveProfileDraft(
+			makeDraft({
+				experiences: [
+					{
+						kind: "formal",
+						role: "Manter",
+						company: "A",
+						period: "2024",
+						description: "A",
+						sortOrder: 0,
+					},
+					{
+						kind: "freelance",
+						role: "Remover",
+						company: "B",
+						period: "2024",
+						description: "B",
+						sortOrder: 1,
+					},
+				],
+				projects: [
+					{
+						name: "Manter",
+						description: "A",
+						repoUrl: "",
+						demoUrl: "",
+						tags: [],
+						sortOrder: 0,
+					},
+					{
+						name: "Remover",
+						description: "B",
+						repoUrl: "",
+						demoUrl: "",
+						tags: [],
+						sortOrder: 1,
+					},
+				],
+				skills: ["React", "Remover"],
+			}),
+		);
+
+		const result = await saveProfileDraft(
+			makeDraft({
+				experiences: [
+					{
+						kind: "formal",
+						role: "Manter",
+						company: "A",
+						period: "2024",
+						description: "A",
+						sortOrder: 0,
+					},
+				],
+				projects: [
+					{
+						name: "Manter",
+						description: "A",
+						repoUrl: "",
+						demoUrl: "",
+						tags: [],
+						sortOrder: 0,
+					},
+				],
+				skills: ["React"],
+			}),
+		);
+
+		expect(result.ok).toBe(true);
+		if (!result.ok) return;
+		expect(result.profile.experiences.map((e) => e.role)).toEqual(["Manter"]);
+		expect(result.profile.projects.map((p) => p.name)).toEqual(["Manter"]);
+		expect(result.profile.skills.map((s) => s.name)).toEqual(["React"]);
+	});
+
+	it("should reject 21 projects", async () => {
+		await seedUser();
+		const result = await saveProfileDraft(
+			makeDraft({
+				projects: Array.from({ length: 21 }, (_, i) => ({
+					name: `Projeto ${i}`,
+					description: "Desc",
+					repoUrl: "",
+					demoUrl: "",
+					tags: [],
+					sortOrder: i,
+				})),
+			}),
+		);
+
+		expect(result.ok).toBe(false);
+		if (result.ok) return;
+		expect(result.fieldErrors?.projects).toBeTruthy();
+	});
+
+	it("should reject unknown experience kind", async () => {
+		await seedUser();
+		const result = await saveProfileDraft(
+			makeDraft({
+				experiences: [
+					{
+						kind: "unknown" as never,
+						role: "Role",
+						company: "Company",
+						period: "2024",
+						description: "Desc",
+						sortOrder: 0,
+					},
+				],
+			}),
+		);
+
+		expect(result.ok).toBe(false);
+		if (result.ok) return;
+		expect(result.fieldErrors?.experiences || result.error).toBeTruthy();
+	});
 });

@@ -49,6 +49,96 @@ test("should persist the headline after reload", async ({ page }) => {
 	await expect(page.getByLabel("Cargo / Headline")).toHaveValue("Engenheira de Software Fullstack");
 });
 
+test("should keep added experience after reload", async ({ page }) => {
+	const email = uniqueEmail("editor-exp");
+	const password = "password123";
+
+	await signUpAndVerify(page, email, password);
+	await login(page, email, password);
+
+	await page.getByRole("tab", { name: "Experiência" }).click();
+	await page.getByRole("button", { name: "Adicionar" }).click();
+	const card = page.getByRole("article", { name: "Experiência #01" });
+	await card.getByLabel("Cargo ou Papel Exercido").fill("Desenvolvedor Front-end");
+	await card.getByLabel("Empresa, Projeto ou Instituição").fill("Startup X");
+	await card.getByLabel("Período").fill("2024 — Atual");
+	await card
+		.getByLabel("Entregas e Resultados (Foque no impacto técnico)")
+		.fill("Construí interfaces acessíveis.");
+	await expect(page.getByText("Rascunho sincronizado")).toBeVisible();
+
+	await page.reload();
+	await page.getByRole("tab", { name: "Experiência" }).click();
+	const reloaded = page.getByRole("article", { name: "Experiência #01" });
+	await expect(reloaded.getByLabel("Cargo ou Papel Exercido")).toHaveValue(
+		"Desenvolvedor Front-end",
+	);
+	await expect(reloaded.getByLabel("Empresa, Projeto ou Instituição")).toHaveValue("Startup X");
+});
+
+test("should load beginner samples and keep after reload", async ({ page }) => {
+	const email = uniqueEmail("editor-samples");
+	const password = "password123";
+
+	await signUpAndVerify(page, email, password);
+	await login(page, email, password);
+
+	await page.getByRole("tab", { name: "Experiência" }).click();
+	await page.getByRole("button", { name: "✨ Carregar Perfil Primeiro Emprego" }).click();
+	await expect(page.getByRole("article", { name: "Experiência #01" })).toBeVisible();
+	await expect(page.getByRole("article", { name: "Experiência #02" })).toBeVisible();
+	await expect(page.getByRole("article", { name: "Experiência #03" })).toBeVisible();
+	await expect(page.getByText("Rascunho sincronizado")).toBeVisible();
+
+	await page.reload();
+	await page.getByRole("tab", { name: "Experiência" }).click();
+	await expect(page.getByRole("article", { name: "Experiência #01" })).toBeVisible();
+	await expect(page.getByRole("article", { name: "Experiência #02" })).toBeVisible();
+	await expect(page.getByRole("article", { name: "Experiência #03" })).toBeVisible();
+	await expect(
+		page.getByRole("article", { name: "Experiência #01" }).getByLabel("Tipo da experiência 1"),
+	).toHaveValue("freelance");
+});
+
+test("should reorder experiences and keep new order after reload", async ({ page }) => {
+	const email = uniqueEmail("editor-order");
+	const password = "password123";
+
+	await signUpAndVerify(page, email, password);
+	await login(page, email, password);
+
+	await page.getByRole("tab", { name: "Experiência" }).click();
+	await page.getByRole("button", { name: "Adicionar" }).click();
+	await page.getByRole("button", { name: "Adicionar" }).click();
+
+	const first = page.getByRole("article", { name: "Experiência #01" });
+	await first.getByLabel("Cargo ou Papel Exercido").fill("Primeiro");
+	await first.getByLabel("Empresa, Projeto ou Instituição").fill("Empresa A");
+	await first.getByLabel("Período").fill("2023");
+	await first.getByLabel("Entregas e Resultados (Foque no impacto técnico)").fill("Desc A");
+
+	const second = page.getByRole("article", { name: "Experiência #02" });
+	await second.getByLabel("Cargo ou Papel Exercido").fill("Segundo");
+	await second.getByLabel("Empresa, Projeto ou Instituição").fill("Empresa B");
+	await second.getByLabel("Período").fill("2024");
+	await second.getByLabel("Entregas e Resultados (Foque no impacto técnico)").fill("Desc B");
+
+	await page.getByRole("button", { name: "Mover Experiência #02 para cima" }).click();
+	await expect(
+		page.getByRole("article", { name: "Experiência #01" }).getByLabel("Cargo ou Papel Exercido"),
+	).toHaveValue("Segundo");
+	await expect(page.getByText("Rascunho sincronizado")).toBeVisible();
+
+	await page.reload();
+	await page.getByRole("tab", { name: "Experiência" }).click();
+	await expect(
+		page.getByRole("article", { name: "Experiência #01" }).getByLabel("Cargo ou Papel Exercido"),
+	).toHaveValue("Segundo");
+	await expect(
+		page.getByRole("article", { name: "Experiência #02" }).getByLabel("Cargo ou Papel Exercido"),
+	).toHaveValue("Primeiro");
+});
+
 test("should redirect to login when unauthenticated", async ({ page }) => {
 	await page.goto("/dashboard");
 	await expect(page).toHaveURL(/\/login/);
