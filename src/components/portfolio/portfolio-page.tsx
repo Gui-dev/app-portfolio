@@ -50,7 +50,7 @@ export function PortfolioPage({
 				<ExperienceList experiences={profile.experiences} />
 				<ProjectList projects={profile.projects} />
 
-				<footer className="pf-footer">
+				<footer aria-label="Rodapé do portfólio" className="pf-footer" role="contentinfo">
 					<div className="pf-footer-divider" aria-hidden="true" />
 					<div className="pf-footer-content">
 						<p className="pf-footer-copy">

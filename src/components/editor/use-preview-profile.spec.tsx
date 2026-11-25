@@ -102,16 +102,32 @@ describe("usePreviewProfile", () => {
 			kind: "freelance",
 			profileId: profile.id,
 			role: "Desenvolvedor",
+			sortOrder: 0,
 		});
 		expect(result.current.projects[0]).toMatchObject({
 			id: "preview-project-0",
 			name: "FolioCraft",
 			profileId: profile.id,
+			sortOrder: 0,
+			tags: ["next"],
 		});
 		expect(result.current.skills[0]).toMatchObject({
 			id: "preview-skill-0",
 			name: "TypeScript",
 			profileId: profile.id,
+			sortOrder: 0,
 		});
+	});
+
+	it("should keep the same profile reference when inputs are unchanged", () => {
+		const profile = makeProfile();
+		const { result, rerender } = renderHook(({ p, d }) => usePreviewProfile(p, d), {
+			initialProps: { p: profile, d: draft },
+		});
+		const first = result.current;
+
+		rerender({ p: profile, d: draft });
+
+		expect(result.current).toBe(first);
 	});
 });

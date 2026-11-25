@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { db } from "@/lib/db/client";
 import { profiles, slugHistory, user } from "@/lib/db/schema";
@@ -232,12 +233,15 @@ describe("dashboard actions", () => {
 			email: "concurrent.user@example.com",
 			name: "Concurrent User",
 		});
-		const [first, second] = await Promise.all([
+		const results = await Promise.all([
+			ensureProfileForUser(u.id, u.email, u.name),
 			ensureProfileForUser(u.id, u.email, u.name),
 			ensureProfileForUser(u.id, u.email, u.name),
 		]);
 
-		expect(first.id).toBe(second.id);
+		expect(new Set(results.map((profile) => profile.id)).size).toBe(1);
+		const rows = await db.select().from(profiles).where(eq(profiles.userId, u.id));
+		expect(rows).toHaveLength(1);
 	});
 
 	it("should suffix slug on collision in ensureProfileForUser", async () => {

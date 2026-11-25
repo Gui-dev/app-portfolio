@@ -1,6 +1,6 @@
 "use server";
 
-import { and, asc, eq } from "drizzle-orm";
+import { and, asc, eq, sql } from "drizzle-orm";
 import { revalidatePath } from "next/cache";
 import { headers } from "next/headers";
 import { auth } from "@/lib/auth";
@@ -128,27 +128,55 @@ export async function ensureProfileForUser(
 
 	const localPart = email.split("@")[0] ?? "user";
 	const base = normalizeSlug(localPart) || "user";
-	const slug = await nextAvailableSlug(base, undefined);
-	if (!slug) {
-		throw new Error("Unable to allocate slug");
+
+	for (let attempt = 0; attempt < 5; attempt += 1) {
+		try {
+			const created = await db.transaction(async (tx) => {
+				// Serialize concurrent creation for the same user; the second caller
+				// waits, then observes the profile created by the first.
+				await tx.execute(sql`select pg_advisory_xact_lock(hashtext(${`profile:${userId}`}))`);
+
+				const current = await tx.query.profiles.findFirst({
+					where: eq(profiles.userId, userId),
+					with: {
+						experiences: { orderBy: (e) => [asc(e.sortOrder)] },
+						projects: { orderBy: (p) => [asc(p.sortOrder)] },
+						skills: { orderBy: (s) => [asc(s.sortOrder)] },
+					},
+				});
+				if (current) return current;
+
+				const slug = await nextAvailableSlug(base, undefined);
+				if (!slug) {
+					throw new Error("Unable to allocate slug");
+				}
+
+				const [row] = await tx
+					.insert(profiles)
+					.values({
+						userId,
+						slug,
+						fullName: name?.trim() || null,
+						contactEmail: email,
+						isPublished: false,
+					})
+					.returning();
+
+				if (!row) {
+					throw new Error("Profile creation failed");
+				}
+
+				return { ...row, experiences: [], projects: [], skills: [] };
+			});
+			return created;
+		} catch (error) {
+			// A different user may claim the same slug between the availability
+			// check and the insert. Retry with the next available suffix.
+			if (!isUniqueViolation(error)) throw error;
+		}
 	}
 
-	await db
-		.insert(profiles)
-		.values({
-			userId,
-			slug,
-			fullName: name?.trim() || null,
-			contactEmail: email,
-			isPublished: false,
-		})
-		.onConflictDoNothing({ target: profiles.userId });
-
-	const created = await loadProfileByUserId(userId);
-	if (!created) {
-		throw new Error("Profile creation failed");
-	}
-	return created;
+	throw new Error("Profile creation failed");
 }
 
 export async function saveProfileDraft(input: ProfileDraft): Promise<SaveProfileDraftResult> {

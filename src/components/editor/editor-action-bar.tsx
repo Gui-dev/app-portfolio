@@ -29,7 +29,11 @@ export function EditorActionBar({
 	isDirty?: boolean;
 }): ReactElement {
 	return (
-		<footer className="flex shrink-0 items-center justify-between border-t border-border/80 bg-surface-2 px-6 py-3.5">
+		<footer
+			aria-label="Barra de ações do editor"
+			className="flex shrink-0 items-center justify-between border-t border-border/80 bg-surface-2 px-6 py-3.5"
+			role="contentinfo"
+		>
 			<span aria-live="polite" className="pl-2 text-xs leading-4 text-muted">
 				{statusLabel(status, isDirty)}
 			</span>

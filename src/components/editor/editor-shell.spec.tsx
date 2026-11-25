@@ -53,7 +53,10 @@ describe("EditorShell", () => {
 	it("should render the action bar with the publish button", () => {
 		render(<EditorShell profile={makeProfile()} />);
 
-		expect(screen.getAllByRole("contentinfo")).toHaveLength(2);
+		expect(
+			screen.getByRole("contentinfo", { name: "Barra de ações do editor" }),
+		).toBeInTheDocument();
+		expect(screen.getByRole("contentinfo", { name: "Rodapé do portfólio" })).toBeInTheDocument();
 		expect(screen.getByRole("button", { name: "Salvar e Publicar" })).toBeInTheDocument();
 	});
 
