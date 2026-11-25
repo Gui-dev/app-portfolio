@@ -279,4 +279,21 @@ describe("dashboard actions", () => {
 		expect(result.profile.headline).toBe("Novo headline");
 		expect(result.profile.isPublished).toBe(true);
 	});
+
+	it("should return slug field error when save hits unique conflict", async () => {
+		const owner = await seedUser({ id: "owner", email: "owner@example.com" });
+		await seedUser({ id: "me", email: "me@example.com" });
+		await db.insert(profiles).values({
+			userId: owner.id,
+			slug: "taken-conflict",
+			fullName: "Owner",
+			contactEmail: owner.email,
+		});
+		const result = await saveProfileDraft(
+			makeDraft({ slug: "taken-conflict", fullName: "Bruce Wayne" }),
+		);
+		expect(result.ok).toBe(false);
+		if (result.ok) return;
+		expect(result.fieldErrors?.slug).toBeTruthy();
+	});
 });
