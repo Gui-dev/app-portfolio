@@ -1,6 +1,7 @@
-import { execFileSync } from "node:child_process";
 import { expect, type Page } from "@playwright/test";
 import { waitForEmail } from "./mailpit";
+
+export { deleteUsers } from "./db";
 
 const PASSWORD = "password123";
 
@@ -67,26 +68,4 @@ export async function createPublishedProfile(
 	await expect(page.getByText("Rascunho sincronizado")).toBeVisible();
 	await page.getByRole("button", { name: "Salvar e Publicar" }).click();
 	await expect(page.getByRole("button", { name: "Atualizar publicação" })).toBeVisible();
-}
-
-export function deleteUsers(emails: string[]): void {
-	for (const email of emails.splice(0)) {
-		execFileSync(
-			"podman",
-			[
-				"compose",
-				"exec",
-				"-T",
-				"postgres",
-				"psql",
-				"-U",
-				"foliocraft",
-				"-d",
-				"foliocraft",
-				"-c",
-				`DELETE FROM "user" WHERE email = '${email.replace(/'/g, "''")}'`,
-			],
-			{ stdio: "ignore" },
-		);
-	}
 }

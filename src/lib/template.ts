@@ -90,3 +90,11 @@ export const TEMPLATES: Record<Template, TemplateToken> = {
 export function templateStyle(template: Template, mode: ColorMode): TemplateStyle {
 	return { ...STYLES[template][mode] };
 }
+
+/** Brand colors for the landing OG card, kept with the other typed tokens. */
+export const BRAND_OG_COLORS = {
+	background: "#0B0F19",
+	foreground: "#F1F5F9",
+	indigo: "#6366F1",
+	violet: "#7C3AED",
+} as const;

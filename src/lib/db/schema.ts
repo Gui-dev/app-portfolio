@@ -162,4 +162,6 @@ export type ProfileWithRelations = Profile & {
 	projects: Project[];
 	skills: Skill[];
 };
-export type ProfileCard = Pick<Profile, "slug" | "fullName" | "headline"> & { skills: string[] };
+export type ProfileCard = Pick<Profile, "slug" | "fullName" | "headline" | "monogramStyle"> & {
+	skills: string[];
+};

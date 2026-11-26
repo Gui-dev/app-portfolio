@@ -52,10 +52,21 @@ export async function listPublishedProfiles(opts: {
 		slug: row.slug ?? "",
 		fullName: row.fullName,
 		headline: row.headline,
+		monogramStyle: row.monogramStyle,
 		skills: row.skills.map((skill) => skill.name),
 	}));
 
 	return { items, total: countRows[0]?.count ?? 0 };
+}
+
+export async function listPublishedProfileSlugs(): Promise<string[]> {
+	const rows = await db
+		.select({ slug: profiles.slug })
+		.from(profiles)
+		.where(and(eq(profiles.isPublished, true), sql`${profiles.slug} IS NOT NULL`))
+		.orderBy(asc(profiles.slug));
+
+	return rows.flatMap((row) => (row.slug ? [row.slug] : []));
 }
 
 export async function resolveSlugRedirect(slug: string): Promise<string | null> {

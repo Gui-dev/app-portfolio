@@ -5,6 +5,7 @@ import { resetDatabase } from "@/lib/db/test-helpers";
 import {
 	getPublicProfileBySlug,
 	isSlugAvailable,
+	listPublishedProfileSlugs,
 	listPublishedProfiles,
 	resolveSlugRedirect,
 } from "./queries";
@@ -101,9 +102,18 @@ describe("profile queries", () => {
 			slug: "profile-12",
 			fullName: "Profile 12",
 			headline: "Vigilante",
+			monogramStyle: "gradient",
 			skills: ["First", "Second", "Third"],
 		});
 		expect(page2.items[0]?.slug).toBe("profile-00");
+	});
+
+	it("should list all published slugs for the sitemap without drafts", async () => {
+		await seedProfile({ slug: "published-one", isPublished: true });
+		await seedProfile({ slug: "published-two", isPublished: true });
+		await seedProfile({ slug: "draft-one", isPublished: false });
+
+		await expect(listPublishedProfileSlugs()).resolves.toEqual(["published-one", "published-two"]);
 	});
 
 	it("should resolve an old slug only when the target is published", async () => {
