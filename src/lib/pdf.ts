@@ -14,10 +14,26 @@ export class PdfUnavailableError extends Error {
 interface PdfGlobalState {
 	__foliocraftPdfBrowser?: Browser | null;
 	__foliocraftPdfBrowserPromise?: Promise<Browser> | null;
+	__foliocraftPdfLaunchGeneration?: number;
 	__foliocraftPdfShutdownHooks?: boolean;
 }
 
 const pdfGlobal = globalThis as typeof globalThis & PdfGlobalState;
+
+type BrowserWithProcess = Browser & {
+	process?: () => { killed?: boolean; kill(signal?: NodeJS.Signals): boolean } | null;
+};
+
+function killBrowserProcess(browser: Browser | null | undefined): void {
+	const child = (browser as BrowserWithProcess | null | undefined)?.process?.();
+	if (child && !child.killed) {
+		try {
+			child.kill("SIGKILL");
+		} catch {
+			// The browser may already have exited.
+		}
+	}
+}
 
 async function getBrowser(): Promise<Browser> {
 	const current = pdfGlobal.__foliocraftPdfBrowser;
@@ -25,12 +41,19 @@ async function getBrowser(): Promise<Browser> {
 
 	if (!pdfGlobal.__foliocraftPdfBrowserPromise) {
 		pdfGlobal.__foliocraftPdfBrowser = null;
+		const generation = (pdfGlobal.__foliocraftPdfLaunchGeneration ?? 0) + 1;
+		pdfGlobal.__foliocraftPdfLaunchGeneration = generation;
 		pdfGlobal.__foliocraftPdfBrowserPromise = chromium
 			.launch({
 				executablePath: process.env.PLAYWRIGHT_CHROMIUM_PATH || undefined,
 				args: ["--no-sandbox"],
 			})
-			.then((browser) => {
+			.then(async (browser) => {
+				if (pdfGlobal.__foliocraftPdfLaunchGeneration !== generation) {
+					killBrowserProcess(browser);
+					await browser.close().catch(() => {});
+					throw new PdfUnavailableError("PDF browser was closed during launch");
+				}
 				pdfGlobal.__foliocraftPdfBrowser = browser;
 				pdfGlobal.__foliocraftPdfBrowserPromise = null;
 				return browser;
@@ -45,19 +68,26 @@ async function getBrowser(): Promise<Browser> {
 }
 
 export async function closePdfBrowser(): Promise<void> {
+	pdfGlobal.__foliocraftPdfLaunchGeneration = (pdfGlobal.__foliocraftPdfLaunchGeneration ?? 0) + 1;
 	const browser = pdfGlobal.__foliocraftPdfBrowser;
+	const pending = pdfGlobal.__foliocraftPdfBrowserPromise;
 	pdfGlobal.__foliocraftPdfBrowser = null;
 	pdfGlobal.__foliocraftPdfBrowserPromise = null;
+
+	killBrowserProcess(browser);
 	await browser?.close().catch(() => {});
+	if (pending) await pending.catch(() => {});
 }
 
 if (!pdfGlobal.__foliocraftPdfShutdownHooks) {
 	pdfGlobal.__foliocraftPdfShutdownHooks = true;
 	const closeOnExit = () => {
+		// Next's own signal handler can call process.exit before async cleanup runs.
+		killBrowserProcess(pdfGlobal.__foliocraftPdfBrowser);
 		void closePdfBrowser();
 	};
-	process.once("SIGTERM", closeOnExit);
-	process.once("SIGINT", closeOnExit);
+	process.prependOnceListener("SIGTERM", closeOnExit);
+	process.prependOnceListener("SIGINT", closeOnExit);
 }
 
 export function createPlaywrightRenderer(): PdfRenderer {

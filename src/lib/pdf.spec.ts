@@ -1,11 +1,18 @@
-import { describe, expect, it, vi } from "vitest";
+import { type Browser, chromium } from "playwright";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
+	closePdfBrowser,
+	createPlaywrightRenderer,
 	type PdfRenderer,
 	PdfUnavailableError,
 	renderPdfResponse,
 	renderProfilePdf,
 	renderProfilePdfResponse,
 } from "./pdf";
+
+vi.mock("playwright", () => ({
+	chromium: { launch: vi.fn() },
+}));
 
 const url = "http://localhost:3000/bruce-wayne/print";
 
@@ -19,6 +26,10 @@ function fakeRenderer(result: Uint8Array | Error): PdfRenderer {
 }
 
 describe("pdf", () => {
+	afterEach(() => {
+		vi.mocked(chromium.launch).mockReset();
+	});
+
 	it("should return the bytes produced by the renderer", async () => {
 		const bytes = new Uint8Array([37, 80, 68, 70, 45]);
 		const renderer = fakeRenderer(bytes);
@@ -76,5 +87,38 @@ describe("pdf", () => {
 		expect(response.headers.get("cache-control")).toBe("no-store");
 		expect(response.headers.get("x-robots-tag")).toBe("noindex");
 		expect(new Uint8Array(await response.arrayBuffer())).toEqual(bytes);
+	});
+
+	it("should close cleanly and stay idempotent when no browser exists", async () => {
+		await expect(closePdfBrowser()).resolves.toBeUndefined();
+		await expect(closePdfBrowser()).resolves.toBeUndefined();
+	});
+
+	it("should close a browser that finishes launching after closePdfBrowser", async () => {
+		let resolveLaunch: ((browser: Browser) => void) | undefined;
+		vi.mocked(chromium.launch).mockImplementation(
+			() =>
+				new Promise<Browser>((resolve) => {
+					resolveLaunch = resolve;
+				}),
+		);
+		const kill = vi.fn(() => true);
+		const close = vi.fn().mockResolvedValue(undefined);
+		const browser = { close, process: () => ({ kill }) } as unknown as Browser;
+
+		try {
+			const render = createPlaywrightRenderer().render(url);
+			expect(resolveLaunch).toBeTypeOf("function");
+
+			const closing = closePdfBrowser();
+			resolveLaunch?.(browser);
+
+			await expect(render).rejects.toBeInstanceOf(PdfUnavailableError);
+			await closing;
+			expect(kill).toHaveBeenCalledWith("SIGKILL");
+			expect(close).toHaveBeenCalledTimes(1);
+		} finally {
+			await closePdfBrowser();
+		}
 	});
 });
