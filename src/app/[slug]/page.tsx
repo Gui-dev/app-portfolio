@@ -59,13 +59,12 @@ export default async function PublicProfilePage({
 			/>
 			<header className="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 border-b border-border px-4 py-4">
 				<span className="font-mono text-xs text-muted">/{profile.slug}</span>
-				<button
-					className="cursor-not-allowed rounded-xl border border-border-strong px-3 py-2 text-xs font-medium text-fg-soft opacity-60"
-					disabled
-					type="button"
+				<a
+					className="rounded-xl border border-border-strong px-3 py-2 text-xs font-medium text-fg-soft transition-colors hover:bg-border/40"
+					href={`/api/pdf/${profile.slug}`}
 				>
 					Baixar PDF
-				</button>
+				</a>
 			</header>
 			<main className="mx-auto max-w-3xl px-4 pb-16">
 				<PortfolioPage profile={profile} />

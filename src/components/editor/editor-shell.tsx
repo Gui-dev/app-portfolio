@@ -80,6 +80,10 @@ export function EditorShell({ profile }: { profile: ProfileWithRelations }): Rea
 	const { status, isDirty } = useAutosave({ values: draft, save, delay: 800 });
 
 	const publicSlug = draft.slug?.trim() || profile.slug || "seu-slug";
+	const pdfHref =
+		isPublished && !isDirty && status !== "saving" && status !== "error" && draft.slug.trim()
+			? `/api/pdf/${draft.slug.trim()}`
+			: undefined;
 	const previewProfile = usePreviewProfile(profile, draft);
 
 	const onPublish = () => {
@@ -244,6 +248,7 @@ export function EditorShell({ profile }: { profile: ProfileWithRelations }): Rea
 						isDirty={isDirty}
 						isPublished={isPublished}
 						onPublish={onPublish}
+						pdfHref={pdfHref}
 						publishPending={publishPending}
 						status={status}
 					/>

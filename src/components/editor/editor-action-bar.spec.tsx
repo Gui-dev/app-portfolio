@@ -23,4 +23,20 @@ describe("EditorActionBar", () => {
 			expect(screen.getByRole("button", { name: label })).toHaveAttribute("type", "button");
 		}
 	});
+
+	it("should disable the export button when no pdfHref is available", () => {
+		render(<EditorActionBar />);
+
+		expect(screen.getByRole("button", { name: "Exportar PDF" })).toBeDisabled();
+	});
+
+	it("should link to the pdf endpoint when pdfHref is available", () => {
+		render(<EditorActionBar pdfHref="/api/pdf/bruce-wayne" />);
+
+		expect(screen.getByRole("link", { name: "Exportar PDF" })).toHaveAttribute(
+			"href",
+			"/api/pdf/bruce-wayne",
+		);
+		expect(screen.queryByRole("button", { name: "Exportar PDF" })).not.toBeInTheDocument();
+	});
 });

@@ -21,12 +21,14 @@ export function EditorActionBar({
 	publishPending = false,
 	isPublished = false,
 	isDirty = false,
+	pdfHref,
 }: {
 	status?: AutosaveStatus;
 	onPublish?: () => void;
 	publishPending?: boolean;
 	isPublished?: boolean;
 	isDirty?: boolean;
+	pdfHref?: string;
 }): ReactElement {
 	return (
 		<footer
@@ -38,14 +40,24 @@ export function EditorActionBar({
 				{statusLabel(status, isDirty)}
 			</span>
 			<div className="flex items-center gap-2.5">
-				<button
-					className={`inline-flex items-center gap-1.5 rounded-xl border border-border-strong px-3.5 py-2 text-xs font-medium leading-4 text-fg-soft transition-colors hover:bg-border/40 disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`}
-					disabled
-					type="button"
-				>
-					<FileText aria-hidden="true" className="size-3 text-danger" />
-					Exportar PDF
-				</button>
+				{pdfHref ? (
+					<a
+						className={`inline-flex items-center gap-1.5 rounded-xl border border-border-strong px-3.5 py-2 text-xs font-medium leading-4 text-fg-soft transition-colors hover:bg-border/40 ${focusRing}`}
+						href={pdfHref}
+					>
+						<FileText aria-hidden="true" className="size-3 text-danger" />
+						Exportar PDF
+					</a>
+				) : (
+					<button
+						className={`inline-flex items-center gap-1.5 rounded-xl border border-border-strong px-3.5 py-2 text-xs font-medium leading-4 text-fg-soft transition-colors hover:bg-border/40 disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`}
+						disabled
+						type="button"
+					>
+						<FileText aria-hidden="true" className="size-3 text-danger" />
+						Exportar PDF
+					</button>
+				)}
 				<button
 					className={`inline-flex items-center gap-1.5 rounded-xl bg-accent-strong px-4 py-2 text-xs font-semibold leading-4 text-fg shadow-md shadow-accent-strong/20 transition-colors hover:bg-accent-strong/90 disabled:cursor-not-allowed disabled:opacity-60 ${focusRing}`}
 					disabled={publishPending}

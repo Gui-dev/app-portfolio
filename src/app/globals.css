@@ -615,3 +615,25 @@ body {
 	font-size: 0.6875rem;
 	line-height: 1.03125;
 }
+
+/* Print / PDF */
+@page {
+	size: A4;
+	margin: 12mm;
+}
+
+@media print {
+	.no-print {
+		/* biome-ignore lint/complexity/noImportantStyles: print chrome must override component styles */
+		display: none !important;
+	}
+
+	.pf-section,
+	.pf-card,
+	.pf-experience-card,
+	.pf-project-card,
+	.pf-hero,
+	.pf-footer {
+		break-inside: avoid;
+	}
+}

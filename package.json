@@ -44,6 +44,7 @@
 		"lucide-react": "^1.74.0",
 		"next": "^15.5.29",
 		"nodemailer": "^10.6.0",
+		"playwright": "^1.65.1",
 		"postgres": "^4.1.1",
 		"react": "^19.3.1",
 		"react-dom": "^19.3.1",
