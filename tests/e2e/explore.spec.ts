@@ -15,7 +15,7 @@ test("should list a published profile", async ({ page }) => {
 		email,
 		slug,
 		fullName: "Explore Wayne",
-		headline: " Explorador de código",
+		headline: "Explorador de código",
 		skills: ["Next.js", "Drizzle", "SEO"],
 	});
 

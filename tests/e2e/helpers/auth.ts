@@ -6,7 +6,10 @@ export { deleteUsers } from "./db";
 const PASSWORD = "password123";
 
 export function uniqueSlug(prefix: string): string {
-	return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 6)}`;
+	const suffix = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
+	const maxPrefixLength = 30 - suffix.length - 1;
+	const base = prefix.slice(0, Math.max(3, maxPrefixLength)).replace(/-+$/g, "");
+	return `${base}-${suffix}`;
 }
 
 export async function signUpAndVerify(page: Page, email: string, password: string): Promise<void> {

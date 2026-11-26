@@ -73,6 +73,9 @@ function psql(statement: string): void {
 }
 
 function insertProfile(fixture: ProfileFixture): ProfileFixture {
+	if (fixture.slug.length < 3 || fixture.slug.length > 30) {
+		throw new Error(`E2E fixture slug must be 3-30 characters: ${fixture.slug}`);
+	}
 	const publishedAt = fixture.publishedAt
 		? `'${fixture.publishedAt.toISOString()}'::timestamptz`
 		: "NULL";
