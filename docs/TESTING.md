@@ -72,12 +72,17 @@ src/app/[slug]/…/x.integration.spec.ts   # integration with the database
 
 ## CI
 
-`.github/workflows/ci.yml` runs two jobs on every push/PR:
+`.github/workflows/ci.yml` runs three jobs on every push/PR. All jobs install with
+`pnpm install --frozen-lockfile` and share the same env block (`DATABASE_URL`, `DATABASE_TEST_URL`,
+`BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, SMTP settings, `NEXT_PUBLIC_APP_URL`, and `E2E_BASE_URL`):
 
-1. **checks:** `pnpm install --frozen-lockfile` → `pnpm lint` → `pnpm typecheck` → `pnpm test`
-2. **build:** same install, with a `postgres:16-alpine` service and the required build env vars, then `pnpm build`. Once migrations exist (database-schema task), `pnpm db:migrate` runs before the build.
-
-The E2E job (Playwright + Postgres + Mailpit services) is added in a later task.
+1. **checks:** a `postgres:16-alpine` service supplies the dev and `_test` databases; run
+   `pnpm lint` → `pnpm typecheck` → `pnpm test`. Integration specs migrate `foliocraft_test` on
+   setup, so the test database URL must point at a real Postgres instance.
+2. **build:** the same Postgres service and env, then `pnpm db:migrate` → `pnpm build`.
+3. **e2e:** `postgres:16-alpine` and `axllent/mailpit` services, then `pnpm db:migrate` →
+   `pnpm seed` (idempotent; safe to repeat) → `pnpm exec playwright install --with-deps chromium`
+   → `pnpm test:e2e`. The `playwright-report` directory is uploaded when the job fails.
 
 ## Coverage
 

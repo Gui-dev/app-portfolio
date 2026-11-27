@@ -9,6 +9,30 @@ jobs:
   checks:
     name: lint, typecheck, tests
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: foliocraft
+          POSTGRES_USER: foliocraft
+          POSTGRES_PASSWORD: foliocraft
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U foliocraft -d foliocraft"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      DATABASE_URL: postgresql://foliocraft:foliocraft@localhost:5432/foliocraft
+      DATABASE_TEST_URL: postgresql://foliocraft:foliocraft@localhost:5432/foliocraft_test
+      BETTER_AUTH_SECRET: ci-secret-0123456789abcdef0123456789abcdef
+      BETTER_AUTH_URL: http://localhost:3000
+      SMTP_HOST: localhost
+      SMTP_PORT: "1025"
+      SMTP_FROM: FolioCraft <no-reply@foliocraft.local>
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      E2E_BASE_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
 
@@ -57,6 +81,7 @@ jobs:
       SMTP_PORT: "1025"
       SMTP_FROM: FolioCraft <no-reply@foliocraft.local>
       NEXT_PUBLIC_APP_URL: http://localhost:3000
+      E2E_BASE_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v4
 
@@ -70,8 +95,73 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Migrate database
+        run: pnpm db:migrate
+
       - name: Build
         run: pnpm build
-        # NOTE: `pnpm db:migrate` is added in the database-schema task, once the
-        # drizzle config and migrations exist. Until then the build does not
-        # touch the database.
+
+  e2e:
+    name: playwright e2e
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_DB: foliocraft
+          POSTGRES_USER: foliocraft
+          POSTGRES_PASSWORD: foliocraft
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U foliocraft -d foliocraft"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      mailpit:
+        image: axllent/mailpit
+        ports:
+          - 1025:1025
+          - 8025:8025
+    env:
+      DATABASE_URL: postgresql://foliocraft:foliocraft@localhost:5432/foliocraft
+      DATABASE_TEST_URL: postgresql://foliocraft:foliocraft@localhost:5432/foliocraft_test
+      BETTER_AUTH_SECRET: ci-secret-0123456789abcdef0123456789abcdef
+      BETTER_AUTH_URL: http://localhost:3000
+      SMTP_HOST: localhost
+      SMTP_PORT: "1025"
+      SMTP_FROM: FolioCraft <no-reply@foliocraft.local>
+      NEXT_PUBLIC_APP_URL: http://localhost:3000
+      E2E_BASE_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Migrate database
+        run: pnpm db:migrate
+
+      - name: Seed demo data
+        run: pnpm seed
+
+      - name: Install Chromium
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: E2E tests
+        run: pnpm test:e2e
+
+      - name: Upload Playwright report
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-report
+          path: playwright-report/
+          retention-days: 7
