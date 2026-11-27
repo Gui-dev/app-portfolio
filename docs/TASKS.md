@@ -24,7 +24,7 @@ Regra de execução: uma task por vez, todos os passos do plano na ordem (teste 
 | 11  | SEO & explore         | Sim          | Metadata, JSON-LD, OG, sitemap, robots, `/explore`                                   | `pnpm test:e2e tests/e2e/seo.spec.ts tests/e2e/explore.spec.ts`               | [x]    |
 | 12  | PDF                   | Sim          | Print route + Playwright + endpoint + botões; e2e download                           | `pnpm test:e2e tests/e2e/pdf.spec.ts`                                         | [x]    |
 | 13  | Configurações         | Sim          | Senha, GitHub conectado, exclusão de conta; e2e                                      | `pnpm test:e2e tests/e2e/settings.spec.ts`                                    | [x]    |
-| 14  | Seed, README, CI e2e  | Não          | Bruce Wayne + rascunho Clark, README inglês, job e2e                                 | `pnpm test:e2e`                                                               | [ ]    |
+| 14  | Seed, README, CI e2e  | Sim          | Bruce Wayne + rascunho Clark, README inglês, job e2e                                 | `pnpm test:e2e`                                                               | [x]    |
 | 15  | A11y & QA             | Não          | axe, teclado, varredura do Review Focus, gate final                                  | `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e`     | [ ]    |
 
 ## Fase UI do editor (revisão incremental)
