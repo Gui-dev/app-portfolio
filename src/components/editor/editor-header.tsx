@@ -1,6 +1,7 @@
 "use client";
 
-import { Copy, Layers, Moon, Sun } from "lucide-react";
+import { Copy, Layers, Moon, Settings, Sun } from "lucide-react";
+import Link from "next/link";
 import { type ReactElement, useState } from "react";
 
 const focusRing =
@@ -52,6 +53,13 @@ export function EditorHeader({ publicSlug }: { publicSlug: string | null }): Rea
 						<Copy aria-hidden="true" className="size-3" />
 					</button>
 				</div>
+				<Link
+					className={`inline-flex items-center gap-2 rounded-xl border border-border px-3 py-1.5 text-sm text-fg/80 transition-colors hover:text-fg ${focusRing}`}
+					href="/dashboard/settings"
+				>
+					<Settings aria-hidden="true" className="size-4" />
+					Configurações
+				</Link>
 				<button
 					aria-label="Alternar tema do editor"
 					aria-pressed={isLight}

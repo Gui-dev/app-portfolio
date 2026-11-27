@@ -33,7 +33,24 @@ export const resetPasswordSchema = z
 		path: ["confirmPassword"],
 	});
 
+export const changePasswordSchema = z
+	.object({
+		currentPassword: z.string().min(1, "Informe sua senha atual."),
+		newPassword: z.string().min(8, "A nova senha deve ter pelo menos 8 caracteres."),
+		confirmPassword: z.string(),
+	})
+	.refine((data) => data.newPassword === data.confirmPassword, {
+		message: "As senhas não coincidem.",
+		path: ["confirmPassword"],
+	});
+
+export const deleteAccountSchema = z.object({
+	slug: z.string().trim().min(1, "Informe seu slug para confirmar."),
+});
+
 export type SignupValues = z.infer<typeof signupSchema>;
 export type LoginValues = z.infer<typeof loginSchema>;
 export type ForgotPasswordValues = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordValues = z.infer<typeof resetPasswordSchema>;
+export type ChangePasswordValues = z.infer<typeof changePasswordSchema>;
+export type DeleteAccountValues = z.infer<typeof deleteAccountSchema>;

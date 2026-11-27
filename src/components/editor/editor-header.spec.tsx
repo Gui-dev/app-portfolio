@@ -42,6 +42,13 @@ describe("EditorHeader", () => {
 		expect(writeText).toHaveBeenCalledWith("https://foliocraft.app/marina-souza");
 	});
 
+	it("should link to the account settings page", () => {
+		render(<EditorHeader publicSlug="marina-souza" />);
+
+		const settingsLink = screen.getByRole("link", { name: "Configurações" });
+		expect(settingsLink).toHaveAttribute("href", "/dashboard/settings");
+	});
+
 	it("should toggle aria-pressed when the theme button is clicked", async () => {
 		const user = userEvent.setup();
 		render(<EditorHeader publicSlug="marina-souza" />);
