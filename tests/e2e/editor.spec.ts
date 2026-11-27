@@ -1,30 +1,12 @@
-import { execFileSync } from "node:child_process";
 import { expect, test } from "@playwright/test";
+import { deleteUsers } from "./helpers/db";
 import { waitForEmail } from "./helpers/mailpit";
 import { uniqueEmail } from "./helpers/users";
 
 const createdEmails: string[] = [];
 
-test.afterEach(() => {
-	for (const email of createdEmails.splice(0)) {
-		execFileSync(
-			"podman",
-			[
-				"compose",
-				"exec",
-				"-T",
-				"postgres",
-				"psql",
-				"-U",
-				"foliocraft",
-				"-d",
-				"foliocraft",
-				"-c",
-				`DELETE FROM "user" WHERE email = '${email.replace(/'/g, "''")}'`,
-			],
-			{ stdio: "ignore" },
-		);
-	}
+test.afterEach(async () => {
+	await deleteUsers(createdEmails);
 });
 
 async function signUpAndVerify(

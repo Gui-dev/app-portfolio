@@ -10,8 +10,8 @@ import { uniqueEmail } from "./helpers/users";
 
 const createdEmails: string[] = [];
 
-test.afterEach(() => {
-	deleteUsers(createdEmails);
+test.afterEach(async () => {
+	await deleteUsers(createdEmails);
 });
 
 test("should change the password and sign in with the new one", async ({ page }) => {
@@ -24,7 +24,8 @@ test("should change the password and sign in with the new one", async ({ page })
 	await login(page, email, password);
 
 	await page.getByRole("link", { name: "Configurações" }).click();
-	await expect(page).toHaveURL(/\/dashboard\/settings/);
+	// Next dev compiles this route on first navigation in a full e2e run.
+	await expect(page).toHaveURL(/\/dashboard\/settings/, { timeout: 15_000 });
 	await expect(page.getByRole("heading", { name: "Configurações da conta" })).toBeVisible();
 
 	await page.getByLabel("Senha atual", { exact: true }).fill(password);

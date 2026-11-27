@@ -133,4 +133,28 @@ describe("seedDemoData", () => {
 
 		await expect(seedDemoData()).rejects.toThrow(/bruce-wayne/);
 	});
+
+	it("should refuse to seed a slug escrowed in history by another profile", async () => {
+		const ownerId = crypto.randomUUID();
+		await db.insert(user).values({
+			id: ownerId,
+			name: "History Owner",
+			email: "history-owner@example.com",
+		});
+		const [ownerProfile] = await db
+			.insert(profiles)
+			.values({
+				userId: ownerId,
+				slug: "history-owner",
+				fullName: "History Owner",
+				contactEmail: "history-owner@example.com",
+			})
+			.returning();
+		await db.insert(slugHistory).values({
+			profileId: ownerProfile?.id ?? "",
+			slug: "bruce-wayne",
+		});
+
+		await expect(seedDemoData()).rejects.toThrow(/bruce-wayne/);
+	});
 });

@@ -10,7 +10,9 @@ import { uniqueEmail } from "./helpers/users";
 
 const createdEmails: string[] = [];
 
-test.afterEach(() => deleteUsers(createdEmails));
+test.afterEach(async () => {
+	await deleteUsers(createdEmails);
+});
 
 test("should publish a draft and expose it at /slug", async ({ page }) => {
 	const email = uniqueEmail("public-publish");

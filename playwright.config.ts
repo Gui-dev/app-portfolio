@@ -7,6 +7,8 @@ export default defineConfig({
 	fullyParallel: false,
 	workers: 1,
 	retries: process.env.CI ? 1 : 0,
+	// HTML report is uploaded by CI on failure; traces stay on failure only.
+	reporter: [["list"], ["html", { open: "never" }]],
 	use: {
 		baseURL: process.env.E2E_BASE_URL ?? "http://localhost:3000",
 		trace: "retain-on-failure",

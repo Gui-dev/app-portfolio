@@ -1,4 +1,5 @@
-import { execFileSync } from "node:child_process";
+import "dotenv/config";
+import postgres from "postgres";
 import { uniqueEmail } from "./users";
 
 type Template = "minimal" | "developer" | "modern";
@@ -49,30 +50,22 @@ function literal(value: string | null): string {
 	return value === null ? "NULL" : `'${value.replace(/'/g, "''")}'`;
 }
 
-function psql(statement: string): void {
-	execFileSync(
-		"podman",
-		[
-			"compose",
-			"exec",
-			"-T",
-			"postgres",
-			"psql",
-			"-U",
-			"foliocraft",
-			"-d",
-			"foliocraft",
-			"-v",
-			"ON_ERROR_STOP=1",
-			"-q",
-			"-c",
-			statement,
-		],
-		{ stdio: "pipe" },
-	);
+/** Runs fixture SQL against DATABASE_URL so the helper works locally and in CI. */
+async function execSql(statement: string): Promise<void> {
+	const url = process.env.DATABASE_URL;
+	if (!url) {
+		throw new Error("DATABASE_URL is required for e2e database fixtures.");
+	}
+
+	const client = postgres(url, { max: 1 });
+	try {
+		await client.unsafe(statement);
+	} finally {
+		await client.end();
+	}
 }
 
-function insertProfile(fixture: ProfileFixture): ProfileFixture {
+async function insertProfile(fixture: ProfileFixture): Promise<ProfileFixture> {
 	if (fixture.slug.length < 3 || fixture.slug.length > 30) {
 		throw new Error(`E2E fixture slug must be 3-30 characters: ${fixture.slug}`);
 	}
@@ -83,7 +76,7 @@ function insertProfile(fixture: ProfileFixture): ProfileFixture {
 		.map((skill, index) => `(${literal(fixture.id)}, ${literal(skill)}, ${index})`)
 		.join(", ");
 
-	psql(`
+	await execSql(`
 		BEGIN;
 		INSERT INTO "user" (id, name, email, email_verified)
 		VALUES (${literal(fixture.userId)}, ${literal(fixture.fullName)}, ${literal(fixture.email)}, true);
@@ -106,7 +99,9 @@ function insertProfile(fixture: ProfileFixture): ProfileFixture {
 }
 
 /** Inserts a draft profile directly into the dev database for e2e fixtures. */
-export function createProfile(overrides: ProfileFixtureOverrides = {}): ProfileFixture {
+export async function createProfile(
+	overrides: ProfileFixtureOverrides = {},
+): Promise<ProfileFixture> {
 	return insertProfile({
 		id: crypto.randomUUID(),
 		userId: crypto.randomUUID(),
@@ -129,7 +124,9 @@ export function createProfile(overrides: ProfileFixtureOverrides = {}): ProfileF
 }
 
 /** Inserts a published profile with a timestamp ahead of existing fixtures. */
-export function createPublishedProfile(overrides: ProfileFixtureOverrides = {}): ProfileFixture {
+export async function createPublishedProfile(
+	overrides: ProfileFixtureOverrides = {},
+): Promise<ProfileFixture> {
 	return createProfile({
 		publishedAt: new Date(Date.now() + 60_000),
 		...overrides,
@@ -137,9 +134,9 @@ export function createPublishedProfile(overrides: ProfileFixtureOverrides = {}):
 }
 
 /** Deletes the users (and cascading rows) created by a spec. */
-export function deleteUsers(emails: string[]): void {
+export async function deleteUsers(emails: string[]): Promise<void> {
 	const pending = emails.splice(0);
 	if (pending.length === 0) return;
 	const values = pending.map(literal).join(", ");
-	psql(`DELETE FROM "user" WHERE email IN (${values});`);
+	await execSql(`DELETE FROM "user" WHERE email IN (${values});`);
 }

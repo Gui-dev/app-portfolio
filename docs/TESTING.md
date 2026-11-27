@@ -44,11 +44,11 @@ pnpm test:e2e      # Playwright E2E suite
 
 `vitest.config.ts` defines three projects:
 
-| Project       | Environment | Includes                                               | Notes                                                                                                   |
-| ------------- | ----------- | ------------------------------------------------------ | ------------------------------------------------------------------------------------------------------- |
-| `unit`        | node        | `src/**/*.spec.ts` (excluding `*.integration.spec.ts`) | plain logic, Zod schemas, helpers                                                                       |
-| `dom`         | jsdom       | `src/**/*.spec.tsx`                                    | React Testing Library with jest-dom matchers                                                            |
-| `integration` | node        | `src/**/*.integration.spec.ts`                         | real database; `fileParallelism: false`; `passWithNoTests: true` until the first integration specs land |
+| Project       | Environment | Includes                                               | Notes                                                                                                |
+| ------------- | ----------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------- |
+| `unit`        | node        | `src/**/*.spec.ts` (excluding `*.integration.spec.ts`) | plain logic, Zod schemas, helpers                                                                    |
+| `dom`         | jsdom       | `src/**/*.spec.tsx`                                    | React Testing Library with jest-dom matchers                                                         |
+| `integration` | node        | `src/**/*.integration.spec.ts`                         | real database; `fileParallelism: false`; root `passWithNoTests: true` means check the reported count |
 
 A shared `vitest.setup.ts` loads `.env` via dotenv and registers jest-dom matchers.
 
@@ -72,7 +72,7 @@ src/app/[slug]/…/x.integration.spec.ts   # integration with the database
 
 ## CI
 
-`.github/workflows/ci.yml` runs three jobs on every push/PR. All jobs install with
+`.github/workflows/ci.yml` runs three jobs on pushes to `main` and on pull requests. All jobs install with
 `pnpm install --frozen-lockfile` and share the same env block (`DATABASE_URL`, `DATABASE_TEST_URL`,
 `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL`, SMTP settings, `NEXT_PUBLIC_APP_URL`, and `E2E_BASE_URL`):
 

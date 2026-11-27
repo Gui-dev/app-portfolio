@@ -6,13 +6,15 @@ import { uniqueEmail } from "./helpers/users";
 const createdEmails: string[] = [];
 const baseUrl = (process.env.E2E_BASE_URL ?? "http://localhost:3000").replace(/\/+$/, "");
 
-test.afterEach(() => deleteUsers(createdEmails));
+test.afterEach(async () => {
+	await deleteUsers(createdEmails);
+});
 
 test("should expose title, description and canonical", async ({ page }) => {
 	const email = uniqueEmail("seo-meta");
 	createdEmails.push(email);
 	const slug = uniqueSlug("seo-meta");
-	createPublishedProfile({
+	await createPublishedProfile({
 		email,
 		slug,
 		fullName: "Meta Wayne",
@@ -34,7 +36,7 @@ test("should render a valid Person json-ld", async ({ page }) => {
 	const email = uniqueEmail("seo-jsonld");
 	createdEmails.push(email);
 	const slug = uniqueSlug("seo-jsonld");
-	createPublishedProfile({
+	await createPublishedProfile({
 		email,
 		slug,
 		fullName: "Json Wayne",
@@ -58,7 +60,7 @@ test("should serve a png og image for a published profile", async ({ request }) 
 	const email = uniqueEmail("seo-og");
 	createdEmails.push(email);
 	const slug = uniqueSlug("seo-og");
-	createPublishedProfile({ email, slug, fullName: "Og Wayne" });
+	await createPublishedProfile({ email, slug, fullName: "Og Wayne" });
 
 	const response = await request.get(`/${slug}/opengraph-image`);
 	expect(response.status()).toBe(200);
@@ -69,7 +71,7 @@ test("should 404 the og image of a draft", async ({ request }) => {
 	const email = uniqueEmail("seo-og-draft");
 	createdEmails.push(email);
 	const slug = uniqueSlug("seo-og-draft");
-	createProfile({ email, slug, fullName: "Rascunho Wayne" });
+	await createProfile({ email, slug, fullName: "Rascunho Wayne" });
 
 	const response = await request.get(`/${slug}/opengraph-image`);
 	expect(response.status()).toBe(404);
@@ -81,8 +83,8 @@ test("should list only published profiles in the sitemap", async ({ request }) =
 	createdEmails.push(publishedEmail, draftEmail);
 	const publishedSlug = uniqueSlug("seo-sitemap-pub");
 	const draftSlug = uniqueSlug("seo-sitemap-draft");
-	createPublishedProfile({ email: publishedEmail, slug: publishedSlug });
-	createProfile({ email: draftEmail, slug: draftSlug });
+	await createPublishedProfile({ email: publishedEmail, slug: publishedSlug });
+	await createProfile({ email: draftEmail, slug: draftSlug });
 
 	const response = await request.get("/sitemap.xml");
 	expect(response.status()).toBe(200);

@@ -136,7 +136,7 @@ Unit and component tests are co-located with source files; integration tests use
 `foliocraft_test` database; Playwright runs against the full local stack with `workers: 1`. See
 [`docs/TESTING.md`](docs/TESTING.md) for details.
 
-GitHub Actions runs three jobs on every push and pull request:
+GitHub Actions runs three jobs on pushes to `main` and on pull requests:
 
 1. **checks** — install, lint, typecheck, and Vitest with a Postgres service.
 2. **build** — install, migrate, and `next build` with Postgres and the full env block.

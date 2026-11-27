@@ -5,13 +5,15 @@ import { uniqueEmail } from "./helpers/users";
 
 const createdEmails: string[] = [];
 
-test.afterEach(() => deleteUsers(createdEmails));
+test.afterEach(async () => {
+	await deleteUsers(createdEmails);
+});
 
 test("should list a published profile", async ({ page }) => {
 	const email = uniqueEmail("explore-published");
 	createdEmails.push(email);
 	const slug = uniqueSlug("explore-published");
-	createPublishedProfile({
+	await createPublishedProfile({
 		email,
 		slug,
 		fullName: "Explore Wayne",
@@ -31,7 +33,7 @@ test("should not list a draft", async ({ page }) => {
 	const email = uniqueEmail("explore-draft");
 	createdEmails.push(email);
 	const slug = uniqueSlug("explore-draft");
-	createProfile({ email, slug, fullName: "Rascunho Invisível" });
+	await createProfile({ email, slug, fullName: "Rascunho Invisível" });
 
 	await page.goto("/explore");
 	await expect(page.locator(`a[href="/${slug}"]`)).toHaveCount(0);
@@ -39,16 +41,18 @@ test("should not list a draft", async ({ page }) => {
 });
 
 test("should paginate at /explore/page/2", async ({ page }) => {
-	const fixtures = Array.from({ length: 13 }, (_, index) => {
-		const email = uniqueEmail(`explore-page-${index}`);
-		createdEmails.push(email);
-		return createPublishedProfile({
-			email,
-			slug: uniqueSlug(`explore-page-${index}`),
-			fullName: `Pagina Wayne ${String(index).padStart(2, "0")}`,
-			publishedAt: new Date(Date.now() + 120_000 + index * 1000),
-		});
-	});
+	const fixtures = await Promise.all(
+		Array.from({ length: 13 }, (_, index) => {
+			const email = uniqueEmail(`explore-page-${index}`);
+			createdEmails.push(email);
+			return createPublishedProfile({
+				email,
+				slug: uniqueSlug(`explore-page-${index}`),
+				fullName: `Pagina Wayne ${String(index).padStart(2, "0")}`,
+				publishedAt: new Date(Date.now() + 120_000 + index * 1000),
+			});
+		}),
+	);
 	const oldest = fixtures[0];
 	const newest = fixtures[12];
 

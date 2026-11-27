@@ -4,7 +4,15 @@ import { fileURLToPath } from "node:url";
 import { hashPassword } from "better-auth/crypto";
 import { and, eq } from "drizzle-orm";
 import { db } from "@/lib/db/client";
-import { account, experiences, profiles, projects, skills, user } from "@/lib/db/schema";
+import {
+	account,
+	experiences,
+	profiles,
+	projects,
+	skills,
+	slugHistory,
+	user,
+} from "@/lib/db/schema";
 import { ProfileDraftSchema, publishableProfileSchema } from "@/lib/validation/profile";
 
 const DEMO_PASSWORD = "foliocraft-demo";
@@ -101,9 +109,18 @@ async function seedDemoProfile(demo: DemoProfile): Promise<void> {
 		.from(profiles)
 		.where(eq(profiles.slug, demo.draft.slug))
 		.limit(1);
-	if (slugOwner && slugOwner.userId !== userId) {
+	const [historyOwner] = await db
+		.select({ userId: profiles.userId })
+		.from(slugHistory)
+		.innerJoin(profiles, eq(slugHistory.profileId, profiles.id))
+		.where(eq(slugHistory.slug, demo.draft.slug))
+		.limit(1);
+	const foreignOwner = [slugOwner, historyOwner].find(
+		(owner) => owner !== undefined && owner.userId !== userId,
+	);
+	if (foreignOwner) {
 		throw new Error(
-			`Cannot seed demo profile: slug "${demo.draft.slug}" is owned by another user (${slugOwner.userId}).`,
+			`Cannot seed demo profile: slug "${demo.draft.slug}" is owned by another user (${foreignOwner.userId}).`,
 		);
 	}
 

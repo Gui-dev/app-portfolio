@@ -10,7 +10,9 @@ import { uniqueEmail } from "./helpers/users";
 
 const createdEmails: string[] = [];
 
-test.afterEach(() => deleteUsers(createdEmails));
+test.afterEach(async () => {
+	await deleteUsers(createdEmails);
+});
 
 test("should permanently redirect the old slug to the new one", async ({ page, request }) => {
 	const email = uniqueEmail("redirect-old");
