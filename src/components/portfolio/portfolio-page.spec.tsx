@@ -134,6 +134,62 @@ describe("PortfolioPage", () => {
 		expect(container.querySelector("script")).toBeNull();
 	});
 
+	it("should escape markup in the name and descriptions", () => {
+		const { container } = render(
+			<PortfolioPage
+				profile={makeProfile({
+					fullName: "<b>Bruce</b> Wayne",
+					experiences: [
+						{
+							id: "exp-1",
+							profileId: "profile-1",
+							kind: "formal",
+							role: "Engineer",
+							company: "Wayne",
+							period: "2020",
+							description: "<script>alert(1)</script>",
+							sortOrder: 0,
+						},
+					],
+					projects: [
+						{
+							id: "proj-1",
+							profileId: "profile-1",
+							name: "Batarang",
+							description: "<img src=x onerror=alert(1)>",
+							repoUrl: null,
+							demoUrl: null,
+							tags: [],
+							sortOrder: 0,
+						},
+					],
+				})}
+			/>,
+		);
+
+		expect(screen.getByText("<b>Bruce</b> Wayne")).toBeInTheDocument();
+		expect(screen.getByText("<script>alert(1)</script>")).toBeInTheDocument();
+		expect(screen.getByText("<img src=x onerror=alert(1)>")).toBeInTheDocument();
+		expect(container.querySelector("script")).toBeNull();
+		expect(container.querySelector("img")).toBeNull();
+	});
+
+	it("should render a long bio without truncation", () => {
+		const bio = "Bio longa ".repeat(200).trim();
+		render(<PortfolioPage profile={makeProfile({ bio })} />);
+
+		expect(screen.getByText(bio)).toBeInTheDocument();
+	});
+
+	it("should render one-word and empty names safely", () => {
+		const { rerender } = render(<PortfolioPage profile={makeProfile({ fullName: "Cher" })} />);
+		expect(screen.getByRole("heading", { name: "Cher" })).toBeInTheDocument();
+
+		rerender(<PortfolioPage profile={makeProfile({ fullName: "" })} />);
+		expect(screen.queryByRole("heading", { level: 1 })).not.toBeInTheDocument();
+		expect(screen.getByRole("article", { name: "Portfólio" })).toBeInTheDocument();
+	});
+
 	it("should order experiences by sortOrder", () => {
 		render(<PortfolioPage profile={makeProfile()} />);
 

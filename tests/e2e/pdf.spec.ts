@@ -49,6 +49,17 @@ test("should 404 the pdf of a draft", async ({ request }) => {
 	expect(response.status()).toBe(404);
 });
 
+test("should 404 the print page of a draft", async ({ page }) => {
+	const email = uniqueEmail("pdf-print-draft");
+	createdEmails.push(email);
+	const slug = uniqueSlug("pdf-print-draft");
+	await createProfile({ email, slug, fullName: "Draft Wayne" });
+
+	const response = await page.goto(`/${slug}/print`);
+	expect(response?.status()).toBe(404);
+	await expect(page.getByRole("heading", { name: "Página não encontrada" })).toBeVisible();
+});
+
 test("should mark the print page as noindex", async ({ page }) => {
 	const email = uniqueEmail("pdf-print");
 	createdEmails.push(email);

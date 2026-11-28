@@ -21,7 +21,7 @@ export function ExploreList({
 		<section className="mx-auto max-w-6xl px-6 py-16">
 			<div className="mb-10 flex flex-wrap items-end justify-between gap-4">
 				<div>
-					<p className="font-mono text-xs uppercase tracking-widest text-accent">
+					<p className="font-mono text-xs uppercase tracking-widest text-accent-soft">
 						Vitrine FolioCraft
 					</p>
 					<h1 className="mt-3 font-display text-4xl font-bold tracking-tight text-fg">

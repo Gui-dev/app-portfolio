@@ -118,6 +118,7 @@ sitemap.
 | `pnpm typecheck`                    | TypeScript check without emit                    |
 | `pnpm test`                         | Vitest unit, component, and integration projects |
 | `pnpm test:e2e`                     | Playwright end-to-end suite                      |
+| `pnpm test:a11y`                    | Accessibility and keyboard specs                 |
 | `pnpm db:migrate`                   | Apply Drizzle migrations                         |
 | `pnpm db:generate`                  | Generate a migration from schema changes         |
 | `pnpm db:studio`                    | Open Drizzle Studio                              |
@@ -142,6 +143,23 @@ GitHub Actions runs three jobs on pushes to `main` and on pull requests:
 2. **build** — install, migrate, and `next build` with Postgres and the full env block.
 3. **e2e** — install, migrate, idempotent `pnpm seed`, install Chromium, and run Playwright with
    Postgres and Mailpit services; the Playwright report is uploaded on failure.
+
+## Verification
+
+Run the full gate locally before shipping:
+
+```bash
+pnpm lint && pnpm typecheck && pnpm test && pnpm build
+pnpm seed && pnpm test:e2e
+pnpm test:a11y
+```
+
+`pnpm test:a11y` checks serious and critical axe violations on all public routes and the
+authenticated dashboard, plus keyboard operation of the editor and the account-deletion dialog.
+Most QA scenarios are automated; the following are exercised by deterministic fixtures and can
+also be inspected manually: a profile with zero sections, 100 skills, a long bio, one-word or empty
+names, an accented slug, an empty-profile PDF, and a draft on every public endpoint. See
+[`docs/TESTING.md`](docs/TESTING.md) for the complete Review Focus map.
 
 ## SEO checklist
 

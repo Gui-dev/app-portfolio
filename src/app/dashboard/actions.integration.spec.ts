@@ -167,6 +167,28 @@ describe("dashboard actions", () => {
 		expect(result.fieldErrors?.slug).toBeTruthy();
 	});
 
+	it("should return a field error for a reserved slug without creating a profile", async () => {
+		await seedUser();
+		const result = await saveProfileDraft(makeDraft({ slug: "dashboard" }));
+		expect(result.ok).toBe(false);
+		if (result.ok) return;
+		expect(result.fieldErrors?.slug).toBeTruthy();
+
+		const rows = await db.select().from(profiles);
+		expect(rows).toHaveLength(0);
+	});
+
+	it("should return a field error for an accented slug without creating a profile", async () => {
+		await seedUser();
+		const result = await saveProfileDraft(makeDraft({ slug: "joão-silva" }));
+		expect(result.ok).toBe(false);
+		if (result.ok) return;
+		expect(result.fieldErrors?.slug).toBeTruthy();
+
+		const rows = await db.select().from(profiles);
+		expect(rows).toHaveLength(0);
+	});
+
 	it("should record the previous slug when the slug changes", async () => {
 		const u = await seedUser();
 		await saveProfileDraft(makeDraft({ slug: "old-slug" }));

@@ -125,7 +125,7 @@ export function AppearanceForm({
 										{TEMPLATES[id].name}
 									</span>
 									{selected ? (
-										<span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold leading-5 text-accent">
+										<span className="rounded bg-accent/15 px-1.5 py-0.5 text-[10px] font-bold leading-5 text-accent-soft">
 											Ativo
 										</span>
 									) : null}

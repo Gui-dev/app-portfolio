@@ -5,6 +5,9 @@ export { deleteUsers } from "./db";
 
 const PASSWORD = "password123";
 
+export const DEMO_EMAIL = "bruce@wayne.dev";
+export const DEMO_PASSWORD = "foliocraft-demo";
+
 export function uniqueSlug(prefix: string): string {
 	const suffix = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`;
 	const maxPrefixLength = 30 - suffix.length - 1;
@@ -37,6 +40,16 @@ export async function login(page: Page, email: string, password: string): Promis
 	await page.getByLabel("Senha").fill(password);
 	await page.getByRole("button", { name: "Entrar" }).click();
 	await expect(page).toHaveURL(/\/dashboard/);
+}
+
+/** Signs in with the seeded demo account used by accessibility and parity specs. */
+export async function loginDemo(page: Page): Promise<void> {
+	await page.goto("/login");
+	await page.getByLabel("E-mail").fill(DEMO_EMAIL);
+	await page.getByLabel("Senha").fill(DEMO_PASSWORD);
+	await page.getByRole("button", { name: "Entrar" }).click();
+	// The first navigation compiles the dashboard route in Next dev.
+	await expect(page).toHaveURL(/\/dashboard/, { timeout: 30_000 });
 }
 
 export async function createPublishedProfile(

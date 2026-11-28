@@ -184,7 +184,7 @@ test("should switch the preview to light mode and persist it", async ({ page }) 
 	await signUpAndVerify(page, email, password);
 	await login(page, email, password);
 
-	await page.getByRole("button", { name: "Alternar tema da prévia" }).click();
+	await page.getByRole("button", { name: /Tema da prévia/ }).click();
 
 	const preview = page.locator("[data-mode]").first();
 	await expect(preview).toHaveAttribute("data-mode", "light");
@@ -193,7 +193,7 @@ test("should switch the preview to light mode and persist it", async ({ page }) 
 	await page.reload();
 
 	await expect(page.locator("[data-mode]").first()).toHaveAttribute("data-mode", "light");
-	await expect(page.getByRole("button", { name: "Alternar tema da prévia" })).toHaveAttribute(
+	await expect(page.getByRole("button", { name: /Tema da prévia/ })).toHaveAttribute(
 		"aria-pressed",
 		"true",
 	);

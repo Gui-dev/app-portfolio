@@ -18,7 +18,7 @@ export function PortfolioPage({
 	const fullName = profile.fullName ?? "";
 	const headline = profile.headline ?? "";
 	const bio = profile.bio ?? "";
-	const ariaLabel = `Portfólio de ${fullName}`.trim() || "Portfólio";
+	const ariaLabel = fullName ? `Portfólio de ${fullName}` : "Portfólio";
 	const year = new Date().getFullYear();
 
 	return (

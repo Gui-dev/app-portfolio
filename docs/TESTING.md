@@ -29,6 +29,7 @@ pnpm infra:down    # stop them again
 
 pnpm seed          # seed the demo account/profile (idempotent)
 pnpm test:e2e      # Playwright E2E suite
+pnpm test:a11y     # accessibility and keyboard specs only
 ```
 
 ## Three levels
@@ -51,6 +52,26 @@ pnpm test:e2e      # Playwright E2E suite
 | `integration` | node        | `src/**/*.integration.spec.ts`                         | real database; `fileParallelism: false`; root `passWithNoTests: true` means check the reported count |
 
 A shared `vitest.setup.ts` loads `.env` via dotenv and registers jest-dom matchers.
+
+## Accessibility QA
+
+`tests/e2e/a11y.spec.ts` runs `@axe-core/playwright` on `/`, `/login`, `/signup`, `/bruce-wayne`,
+`/explore` and the authenticated `/dashboard`; only `serious` and `critical` violations fail the
+suite. The authenticated specs sign in as the seeded demo user, so `pnpm seed` must run first.
+The same file covers keyboard operation (tab/arrow navigation through editor tabs, fields, reorder
+buttons and the footer, visible focus rings, focus trapping in the delete dialog and `Escape` to
+close). `pnpm test:a11y` runs this spec alone.
+
+The final QA sweep maps each `docs/TASKS.md` Review Focus line to a green test:
+
+| Review Focus area                                                       | Covering test                                                                                                   |
+| ----------------------------------------------------------------------- | --------------------------------------------------------------------------------------------------------------- |
+| Hostile slug (reserved/taken/accent/reclaim)                            | `src/app/dashboard/actions.integration.spec.ts`, `tests/e2e/slug-redirect.spec.ts`                              |
+| Draft isolation across public/print/PDF/redirect                        | `tests/e2e/public-page.spec.ts`, `tests/e2e/pdf.spec.ts`, `tests/e2e/slug-redirect.spec.ts`                     |
+| Escaped markup, http(s) URLs, JSON-LD                                   | `src/components/portfolio/portfolio-page.spec.tsx`, `src/lib/validation/profile.spec.ts`, `src/lib/seo.spec.ts` |
+| PDF availability, sparse profile, reuse                                 | `src/lib/pdf.spec.ts`, `tests/e2e/pdf.spec.ts`                                                                  |
+| Extreme content (0 sections, 100 skills, long bio, one-word/empty name) | `src/components/portfolio/portfolio-page.spec.tsx`, `src/lib/validation/profile.spec.ts`                        |
+| Template and CSS variable parity                                        | `tests/e2e/public-page.spec.ts` (preview/public/print/PDF)                                                      |
 
 ## Spec colocation
 

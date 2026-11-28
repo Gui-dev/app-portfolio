@@ -40,6 +40,28 @@ describe("ProfileDraftSchema", () => {
 		expect(result.success).toBe(false);
 	});
 
+	it("should reject non-http social urls", () => {
+		for (const overrides of [
+			{ githubUrl: "javascript:alert(1)" },
+			{ linkedinUrl: "ftp://example.com/profile" },
+			{
+				projects: [
+					{
+						name: "P",
+						description: "D",
+						repoUrl: "",
+						demoUrl: "data:text/html,<script>alert(1)</script>",
+						tags: [],
+						sortOrder: 0,
+					},
+				],
+			},
+		]) {
+			const result = ProfileDraftSchema.safeParse(validDraft(overrides));
+			expect(result.success).toBe(false);
+		}
+	});
+
 	it("should reject more than 100 skills", () => {
 		const result = ProfileDraftSchema.safeParse(
 			validDraft({ skills: Array.from({ length: 101 }, (_, i) => `skill-${i}`) }),

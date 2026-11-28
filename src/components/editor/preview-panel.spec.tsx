@@ -107,7 +107,7 @@ describe("PreviewPanel", () => {
 			/>,
 		);
 
-		const themeButton = screen.getByRole("button", { name: "Alternar tema da prévia" });
+		const themeButton = screen.getByRole("button", { name: /Tema da prévia/ });
 		expect(themeButton).toHaveAttribute("aria-pressed", "false");
 		expect(container.querySelector("[data-mode]")).toHaveAttribute("data-mode", "dark");
 		expect(screen.getByText("Escuro")).toBeInTheDocument();
@@ -128,7 +128,7 @@ describe("PreviewPanel", () => {
 			/>,
 		);
 
-		const themeButton = screen.getByRole("button", { name: "Alternar tema da prévia" });
+		const themeButton = screen.getByRole("button", { name: /Tema da prévia/ });
 		expect(themeButton).toHaveAttribute("aria-pressed", "true");
 		expect(container.querySelector("[data-mode]")).toHaveAttribute("data-mode", "light");
 		expect(screen.getByText("Claro")).toBeInTheDocument();

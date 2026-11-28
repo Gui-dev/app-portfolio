@@ -1,6 +1,13 @@
 import { expect, test } from "@playwright/test";
+import { deleteUsers } from "./helpers/db";
 import { waitForEmail } from "./helpers/mailpit";
 import { uniqueEmail } from "./helpers/users";
+
+const createdEmails: string[] = [];
+
+test.afterEach(async () => {
+	await deleteUsers(createdEmails);
+});
 
 async function signUp(page: import("@playwright/test").Page, email: string, password: string) {
 	await page.goto("/signup");
@@ -30,6 +37,7 @@ async function signUpAndVerify(
 
 test("should sign up, verify by email and reach the dashboard", async ({ page }) => {
 	const email = uniqueEmail("auth");
+	createdEmails.push(email);
 	const password = "password123";
 
 	await signUpAndVerify(page, email, password);
@@ -45,6 +53,7 @@ test("should sign up, verify by email and reach the dashboard", async ({ page })
 
 test("should reject a wrong password", async ({ page }) => {
 	const email = uniqueEmail("wrong-password");
+	createdEmails.push(email);
 	const password = "password123";
 
 	await signUpAndVerify(page, email, password);

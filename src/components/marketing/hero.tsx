@@ -10,7 +10,7 @@ export function Hero() {
 			/>
 
 			<div className="relative mx-auto flex max-w-4xl flex-col items-center text-center">
-				<span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 font-mono text-xs uppercase tracking-[0.18em] text-accent">
+				<span className="rounded-full border border-accent/30 bg-accent/10 px-3 py-1 font-mono text-xs uppercase tracking-[0.18em] text-accent-soft">
 					SSR + SEO
 				</span>
 

@@ -36,7 +36,7 @@ export function FeatureGrid() {
 				<div className="mt-12 grid gap-6 md:grid-cols-3">
 					{features.map(({ icon: Icon, title, description }) => (
 						<article key={title} className="rounded-2xl border border-border bg-surface p-6">
-							<span className="grid size-11 place-items-center rounded-xl border border-accent/30 bg-accent/10 text-accent">
+							<span className="grid size-11 place-items-center rounded-xl border border-accent/30 bg-accent/10 text-accent-soft">
 								<Icon aria-hidden="true" className="size-5" />
 							</span>
 							<h3 className="mt-5 font-display text-xl font-semibold text-fg">{title}</h3>

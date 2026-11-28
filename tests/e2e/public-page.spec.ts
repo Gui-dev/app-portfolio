@@ -1,14 +1,24 @@
-import { expect, test } from "@playwright/test";
+import { expect, type Locator, test } from "@playwright/test";
 import {
 	createPublishedProfile,
 	deleteUsers,
 	login,
+	loginDemo,
 	signUpAndVerify,
 	uniqueSlug,
 } from "./helpers/auth";
 import { uniqueEmail } from "./helpers/users";
 
 const createdEmails: string[] = [];
+
+async function templateTokens(locator: Locator): Promise<string[]> {
+	return locator.evaluate((element) => {
+		const styles = window.getComputedStyle(element);
+		return ["--accent", "--bg", "--fg"].map(
+			(name) => `${name}: ${styles.getPropertyValue(name).trim()}`,
+		);
+	});
+}
 
 test.afterEach(async () => {
 	await deleteUsers(createdEmails);
@@ -75,6 +85,31 @@ test("should show a published edit on the public page", async ({ page }) => {
 	await page.reload();
 	await expect(page.getByText("Headline Novo")).toBeVisible();
 	await expect(page.getByText("Headline Antigo")).toHaveCount(0);
+});
+
+test("should render the same template and css variables in preview, public page and print", async ({
+	page,
+}) => {
+	await loginDemo(page);
+	await expect(page.getByLabel("Cargo / Headline")).toBeVisible();
+
+	const preview = page.locator("[data-template]").first();
+	await expect(preview).toHaveAttribute("data-template", "modern");
+	const previewTokens = await templateTokens(preview);
+
+	await page.goto("/bruce-wayne");
+	const publicArticle = page.locator("[data-template]").first();
+	await expect(publicArticle).toHaveAttribute("data-template", "modern");
+	expect(await templateTokens(publicArticle)).toEqual(previewTokens);
+
+	await page.goto("/bruce-wayne/print");
+	const printArticle = page.locator("[data-template]").first();
+	await expect(printArticle).toHaveAttribute("data-template", "modern");
+	expect(await templateTokens(printArticle)).toEqual(previewTokens);
+
+	const pdf = await page.request.get("/api/pdf/bruce-wayne");
+	expect(pdf.status()).toBe(200);
+	expect(pdf.headers()["content-type"]).toContain("application/pdf");
 });
 
 test("should be reachable from the landing demo link", async ({ page, request }) => {

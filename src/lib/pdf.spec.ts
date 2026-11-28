@@ -89,6 +89,32 @@ describe("pdf", () => {
 		expect(new Uint8Array(await response.arrayBuffer())).toEqual(bytes);
 	});
 
+	it("should reuse a single browser across renders", async () => {
+		const page = {
+			goto: vi.fn().mockResolvedValue(undefined),
+			emulateMedia: vi.fn().mockResolvedValue(undefined),
+			pdf: vi.fn().mockResolvedValue(Buffer.from("%PDF-1.4")),
+			close: vi.fn().mockResolvedValue(undefined),
+		};
+		const browser = {
+			isConnected: () => true,
+			newPage: vi.fn().mockResolvedValue(page),
+			close: vi.fn().mockResolvedValue(undefined),
+		};
+		vi.mocked(chromium.launch).mockResolvedValue(browser as unknown as Browser);
+
+		try {
+			const renderer = createPlaywrightRenderer();
+			await renderer.render(url);
+			await renderer.render(url);
+
+			expect(chromium.launch).toHaveBeenCalledTimes(1);
+			expect(browser.newPage).toHaveBeenCalledTimes(2);
+		} finally {
+			await closePdfBrowser();
+		}
+	});
+
 	it("should close cleanly and stay idempotent when no browser exists", async () => {
 		await expect(closePdfBrowser()).resolves.toBeUndefined();
 		await expect(closePdfBrowser()).resolves.toBeUndefined();

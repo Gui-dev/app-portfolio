@@ -16,6 +16,7 @@
 		"typecheck": "tsc --noEmit",
 		"test": "vitest run",
 		"test:e2e": "playwright test",
+		"test:a11y": "playwright test tests/e2e/a11y.spec.ts",
 		"db:generate": "drizzle-kit generate",
 		"db:migrate": "drizzle-kit migrate",
 		"db:studio": "drizzle-kit studio",
@@ -53,6 +54,7 @@
 		"zod": "^4.6.7"
 	},
 	"devDependencies": {
+		"@axe-core/playwright": "^4.14.1",
 		"@biomejs/biome": "^2.6.8",
 		"@commitlint/cli": "^21.2.4",
 		"@commitlint/config-conventional": "^21.2.4",

@@ -27,7 +27,7 @@ export function PreviewPanel({
 					<span className="text-xs font-semibold uppercase leading-4 tracking-[0.6px] text-muted">
 						Prévia ao vivo
 					</span>
-					<span className="rounded-md bg-accent/10 px-2 py-0.5 font-mono text-[11px] font-medium leading-[16.5px] text-accent">
+					<span className="rounded-md bg-accent/10 px-2 py-0.5 font-mono text-[11px] font-medium leading-[16.5px] text-accent-soft">
 						{TEMPLATES[profile.template].name}
 					</span>
 				</div>
@@ -62,7 +62,7 @@ export function PreviewPanel({
 					</div>
 					<button
 						type="button"
-						aria-label="Alternar tema da prévia"
+						aria-label={`Tema da prévia: ${isLight ? "Claro" : "Escuro"} — alternar`}
 						aria-pressed={isLight}
 						onClick={() => onColorModeChange?.(isLight ? "dark" : "light")}
 						className="flex items-center gap-1.5 rounded-xl border border-border bg-inset px-3 py-1.5 text-xs font-medium leading-4 text-fg-dim focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-canvas"
