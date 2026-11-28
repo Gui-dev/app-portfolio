@@ -25,7 +25,7 @@ Regra de execução: uma task por vez, todos os passos do plano na ordem (teste 
 | 12  | PDF                   | Sim          | Print route + Playwright + endpoint + botões; e2e download                           | `pnpm test:e2e tests/e2e/pdf.spec.ts`                                         | [x]    |
 | 13  | Configurações         | Sim          | Senha, GitHub conectado, exclusão de conta; e2e                                      | `pnpm test:e2e tests/e2e/settings.spec.ts`                                    | [x]    |
 | 14  | Seed, README, CI e2e  | Sim          | Bruce Wayne + rascunho Clark, README inglês, job e2e                                 | `pnpm test:e2e`                                                               | [x]    |
-| 15  | A11y & QA             | Não          | axe, teclado, varredura do Review Focus, gate final                                  | `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e`     | [ ]    |
+| 15  | A11y & QA             | Sim          | axe, teclado, varredura do Review Focus, gate final                                  | `pnpm lint && pnpm typecheck && pnpm test && pnpm build && pnpm test:e2e`     | [x]    |
 
 ## Fase UI do editor (revisão incremental)
 
@@ -56,12 +56,12 @@ Fase atual, **antes da Task 3**. Cada linha é uma task de um componente: o cód
 
 ## Review Focus (checado na Task 15, testado na task dona)
 
-- [ ] Slug hostil (reservado/tomado/acento/reclaim) → erro de campo, sem 500 nem duplicata.
-- [ ] Rascunho não vaza por `/[slug]`, `/[slug]/print` nem `/api/pdf/[slug]`; slug antigo de rascunho não redireciona.
-- [ ] Markup escapado em nome/bio/descrições; URLs só `http(s)`; JSON-LD com `<` escapado.
-- [ ] PDF: Chromium ausente → 503; perfil vazio → PDF válido; browser reutilizado.
-- [ ] Conteúdo extremo: zero seções, 100 skills, bio longa, nome de 1 palavra/vazio.
-- [ ] Preview, página pública e PDF renderizam o mesmo template e as mesmas CSS vars.
+- [x] Slug hostil (reservado/tomado/acento/reclaim) → erro de campo, sem 500 nem duplicata.
+- [x] Rascunho não vaza por `/[slug]`, `/[slug]/print` nem `/api/pdf/[slug]`; slug antigo de rascunho não redireciona.
+- [x] Markup escapado em nome/bio/descrições; URLs só `http(s)`; JSON-LD com `<` escapado.
+- [x] PDF: Chromium ausente → 503; perfil vazio → PDF válido; browser reutilizado.
+- [x] Conteúdo extremo: zero seções, 100 skills, bio longa, nome de 1 palavra/vazio.
+- [x] Preview, página pública e PDF renderizam o mesmo template e as mesmas CSS vars.
 
 ## Definition of Done (por task)
 
